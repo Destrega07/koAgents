@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>可口可乐销售赋能中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" crossorigin="anonymous"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cokeRed: "#F40009",
+            },
+          },
+        },
+      };
+    </script>
+    <script>
+      (function () {
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+          window.location.replace("/login.html");
+        }
+      })();
+    </script>
+    <style>
+      .md-content {
+        white-space: pre-wrap !important;
+      }
+      .md-content p {
+        margin-top: 0;
+        margin-bottom: 0;
+        line-height: 1.5;
+      }
+      .md-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.25rem 0;
+        font-size: 0.875rem;
+      }
+      .md-content th,
+      .md-content td {
+        border: 1px solid #d1d5db;
+        padding: 0.35rem 0.45rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .md-content thead th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body class="h-[100dvh] overflow-hidden bg-gray-100">
+    <script>
+      (function () {
+        if (sessionStorage.getItem("postLoginAnim") === "1") {
+          document.documentElement.dataset.postLogin = "1";
+        }
+      })();
+    </script>
+    <div class="relative flex h-full">
+      <div
+        id="postLoginOverlay"
+        class="fixed inset-0 z-50 hidden bg-gradient-to-b from-[#b80006] via-[#f40009] to-[#ff1a22] opacity-100 transition-opacity duration-500"
+      >
+        <img
+          id="postLoginLogo"
+          src="/assets/logo.png"
+          alt="Coca-Cola"
+          class="absolute left-6 top-5 h-10 w-auto"
+        />
+      </div>
+      <div
+        id="sidebarOverlay"
+        class="fixed inset-0 z-30 hidden bg-black/40 md:hidden"
+        aria-hidden="true"
+      ></div>
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-40 flex w-80 -translate-x-full flex-col bg-cokeRed text-white transition-transform duration-300 ease-out md:static md:translate-x-0"
+      >
+        <div class="flex items-center gap-3 border-b border-white/20 px-6 py-5">
+          <img id="sidebarLogo" src="/assets/logo.png" alt="Coca-Cola" class="h-10 w-auto" />
+          <div class="text-xl font-semibold tracking-wide">销售赋能中心</div>
+        </div>
+        <nav id="agentList" class="flex-1 space-y-2 overflow-y-auto p-4"></nav>
+      </aside>
+
+      <main class="flex min-w-0 flex-1 flex-col">
+        <header class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4 md:px-6">
+          <div class="flex min-w-0 items-center gap-3">
+            <button
+              id="sidebarToggleBtn"
+              type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 md:hidden"
+              aria-label="打开侧边栏"
+            >
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <div id="activeAgentName" class="truncate text-lg font-semibold text-gray-900">加载中…</div>
+            <div id="activeAgentDesc" class="hidden text-sm text-gray-500 md:block">请选择左侧智能体开始对话</div>
+          </div>
+          <div class="hidden items-center gap-3 md:flex">
+            <button
+              id="clearChatBtn"
+              class="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200"
+              type="button"
+            >
+              清除对话
+            </button>
+            <button
+              id="downloadChatBtn"
+              class="rounded-md bg-cokeRed px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+              type="button"
+            >
+              下载对话
+            </button>
+          </div>
+          <div class="relative md:hidden">
+            <button
+              id="mobileMoreBtn"
+              type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+              aria-label="更多操作"
+            >
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+                <circle cx="5" cy="12" r="1.7"></circle>
+                <circle cx="12" cy="12" r="1.7"></circle>
+                <circle cx="19" cy="12" r="1.7"></circle>
+              </svg>
+            </button>
+            <div
+              id="mobileMoreMenu"
+              class="absolute right-0 mt-2 hidden w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+            >
+              <button
+                id="mobileClearChatBtn"
+                type="button"
+                class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
+              >
+                清除对话
+              </button>
+              <button
+                id="mobileDownloadChatBtn"
+                type="button"
+                class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
+              >
+                下载对话
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section class="min-h-0 flex-1 px-4 py-4 md:px-6">
+          <div class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <div id="statusBar" class="hidden border-b border-gray-200 bg-gray-50 px-4 py-2 text-sm"></div>
+            <div id="messages" class="flex-1 space-y-4 overflow-y-auto bg-white p-4"></div>
+            <form id="chatForm" class="border-t border-gray-200 bg-gray-50 p-4">
+              <div id="filePreview" class="mb-3 hidden rounded-lg border border-gray-200 bg-white px-3 py-2">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="truncate text-sm font-medium text-gray-900" id="fileNameText"></div>
+                    <div class="mt-1 hidden h-1.5 w-full overflow-hidden rounded bg-gray-200" id="uploadProgressWrap">
+                      <div
+                        id="uploadProgressBar"
+                        class="h-full w-0 bg-cokeRed transition-[width]"
+                        style="width: 0%"
+                      ></div>
+                    </div>
+                  </div>
+                  <button
+                    id="removeFileBtn"
+                    type="button"
+                    class="shrink-0 rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-200"
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <button
+                  id="fileBtn"
+                  type="button"
+                  class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  title="上传附件"
+                >
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l10.6-10.6a4 4 0 0 1 5.66 5.66l-10.6 10.6a2 2 0 0 1-2.83-2.83l9.19-9.19"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <input id="fileInput" type="file" class="hidden" />
+                <textarea
+                  id="chatInput"
+                  rows="2"
+                  class="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-[16px] focus:border-cokeRed focus:outline-none focus:ring-2 focus:ring-cokeRed/40"
+                  placeholder="输入内容，回车发送（Shift+Enter 换行）"
+                ></textarea>
+                <button
+                  id="sendBtn"
+                  type="submit"
+                  class="w-24 shrink-0 rounded-lg bg-cokeRed font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  发送
+                </button>
+              </div>
+              <div id="tokenHint" class="mt-2 text-xs text-gray-500"></div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

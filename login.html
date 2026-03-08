@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>登录 - 可口可乐销售赋能中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cokeRed: "#F40009",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @keyframes ribbonShift {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-25%);
+        }
+      }
+    </style>
+  </head>
+  <body class="h-[100dvh] overflow-hidden bg-cokeRed text-white">
+    <div class="relative h-[100dvh] overflow-hidden">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-[#b80006] via-[#f40009] to-[#ff1a22]"
+      ></div>
+
+      <div class="relative z-10 flex h-[100dvh] items-center justify-center px-6 pb-[240px] pt-10">
+        <div class="w-full max-w-md">
+          <div class="mb-6 flex items-center justify-center">
+            <img
+              id="brandLogo"
+              src="/assets/logo.png"
+              alt="Coca-Cola"
+              class="w-40 min-[360px]:w-44 min-[420px]:w-48"
+            />
+          </div>
+          <div
+            id="loginCard"
+            class="rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl md:p-8"
+          >
+            <div class="mb-6">
+              <div class="text-lg font-semibold tracking-wide">销售赋能中心</div>
+              <div class="mt-1 text-sm text-white/80">使用企业账号登录</div>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+              <div>
+                <label class="mb-1 block text-xs text-white/80">账号</label>
+                <input
+                  id="username"
+                  autocomplete="username"
+                  inputmode="text"
+                  class="h-12 w-full rounded-2xl border border-white/20 bg-white/10 px-4 text-[16px] text-white/95 placeholder:text-white/35 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  placeholder="请输入账号"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-white/80">密码</label>
+                <input
+                  id="password"
+                  type="password"
+                  autocomplete="current-password"
+                  class="h-12 w-full rounded-2xl border border-white/20 bg-white/10 px-4 text-[16px] text-white/95 placeholder:text-white/35 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  placeholder="请输入密码"
+                />
+              </div>
+              <div id="errorText" class="hidden text-sm text-white/90"></div>
+              <button
+                type="submit"
+                class="mt-2 h-12 w-full rounded-2xl bg-white font-semibold text-cokeRed shadow-lg shadow-black/15 transition active:scale-[0.99]"
+              >
+                登录
+              </button>
+            </form>
+          </div>
+          <div
+            id="slogan"
+            class="mt-6 text-center text-xs text-white/70 tracking-[0.2em]"
+          >
+            DingSheng 2030 - 数智引领增长
+          </div>
+        </div>
+      </div>
+
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0">
+        <div class="relative w-[200%] opacity-95" style="animation: ribbonShift 16s linear infinite">
+          <svg viewBox="0 0 1440 220" class="h-[220px] w-full" preserveAspectRatio="none">
+            <path
+              fill="white"
+              fill-opacity="1"
+              d="M0,160 C240,110 420,210 720,160 C1020,110 1200,210 1440,160 L1440,240 L0,240 Z"
+            >
+              <animate
+                attributeName="d"
+                dur="10s"
+                repeatCount="indefinite"
+                values="
+                M0,160 C240,110 420,210 720,160 C1020,110 1200,210 1440,160 L1440,240 L0,240 Z;
+                M0,170 C260,220 460,90 720,170 C980,250 1180,110 1440,170 L1440,240 L0,240 Z;
+                M0,160 C240,110 420,210 720,160 C1020,110 1200,210 1440,160 L1440,240 L0,240 Z
+                "
+              />
+            </path>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+        const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+        if (isLoggedIn === "true") {
+          window.location.replace("/");
+          return;
+        }
+
+        const form = document.getElementById("loginForm");
+        const username = document.getElementById("username");
+        const password = document.getElementById("password");
+        const errorText = document.getElementById("errorText");
+        const logo = document.getElementById("brandLogo");
+        const card = document.getElementById("loginCard");
+
+        const showError = (msg) => {
+          errorText.textContent = String(msg || "");
+          errorText.classList.toggle("hidden", !errorText.textContent);
+        };
+
+        const runLoginTransition = () =>
+          new Promise((resolve) => {
+            if (!logo || !card) {
+              resolve();
+              return;
+            }
+
+            const rect = logo.getBoundingClientRect();
+            const clone = logo.cloneNode(true);
+            clone.id = "brandLogoFly";
+            clone.style.position = "fixed";
+            clone.style.left = rect.left + "px";
+            clone.style.top = rect.top + "px";
+            clone.style.width = rect.width + "px";
+            clone.style.height = rect.height + "px";
+            clone.style.zIndex = "60";
+            clone.style.transformOrigin = "top left";
+            clone.style.willChange = "transform, opacity";
+            clone.style.transition = "transform 520ms cubic-bezier(0.2, 0.9, 0.2, 1), opacity 520ms ease";
+            document.body.appendChild(clone);
+            logo.style.opacity = "0";
+
+            card.style.willChange = "transform, opacity";
+            card.style.transition = "transform 360ms ease, opacity 360ms ease";
+            card.style.opacity = "0";
+            card.style.transform = "translateY(10px) scale(0.985)";
+
+            const targetLeft = 24;
+            const targetTop = 20;
+            const targetHeight = 40;
+            const scale = rect.height > 0 ? targetHeight / rect.height : 0.35;
+            const dx = targetLeft - rect.left;
+            const dy = targetTop - rect.top;
+
+            requestAnimationFrame(() => {
+              clone.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+            });
+
+            setTimeout(resolve, 540);
+          });
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const u = String(username.value || "").trim();
+          const p = String(password.value || "").trim();
+          if (u === "kosales" && p === "ds2030") {
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("postLoginAnim", "1");
+            runLoginTransition().finally(() => window.location.replace("/"));
+            return;
+          }
+          showError("账号或密码错误");
+        });
+
+        username.focus();
+      })();
+    </script>
+  </body>
+</html>
