@@ -4,19 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>登录 - 可口可乐销售赋能中心</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              cokeRed: "#F40009",
-            },
-          },
-        },
-      };
-    </script>
     <style>
+      :root {
+        --coke-red: #f40009;
+        --shadow: 0 28px 60px rgba(0, 0, 0, 0.25);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial;
+        color: white;
+        background: linear-gradient(180deg, #b80006 0%, var(--coke-red) 45%, #ff1a22 120%);
+        overflow: hidden;
+      }
+
       @keyframes ribbonShift {
         0% {
           transform: translateX(0);
@@ -25,75 +42,161 @@
           transform: translateX(-25%);
         }
       }
+
+      .wrap {
+        position: relative;
+        height: 100%;
+      }
+
+      .center {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 28px 18px 260px;
+      }
+
+      .box {
+        width: min(420px, 100%);
+      }
+
+      .logo {
+        display: grid;
+        place-items: center;
+        margin-bottom: 18px;
+      }
+
+      .logo img {
+        width: 190px;
+        height: auto;
+      }
+
+      .card {
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+
+      .card h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.08em;
+      }
+
+      .card p {
+        margin: 6px 0 14px;
+        font-size: 12px;
+        opacity: 0.85;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        opacity: 0.85;
+        margin: 10px 0 6px;
+      }
+
+      input {
+        width: 100%;
+        height: 44px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.96);
+        padding: 0 14px;
+        outline: none;
+        font-size: 16px;
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      input:focus {
+        border-color: rgba(255, 255, 255, 0.38);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.16);
+      }
+
+      .error {
+        margin-top: 10px;
+        font-size: 13px;
+        display: none;
+      }
+
+      .error.show {
+        display: block;
+      }
+
+      .submit {
+        margin-top: 14px;
+        width: 100%;
+        height: 46px;
+        border-radius: 16px;
+        border: 0;
+        background: white;
+        color: var(--coke-red);
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 16px 24px rgba(0, 0, 0, 0.18);
+      }
+
+      .submit:active {
+        transform: scale(0.99);
+      }
+
+      .slogan {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        opacity: 0.75;
+      }
+
+      .ribbon {
+        pointer-events: none;
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        opacity: 0.95;
+      }
+
+      .ribbon-inner {
+        width: 200%;
+        animation: ribbonShift 16s linear infinite;
+      }
     </style>
   </head>
-  <body class="h-[100dvh] overflow-hidden bg-cokeRed text-white">
-    <div class="relative h-[100dvh] overflow-hidden">
-      <div
-        class="absolute inset-0 bg-gradient-to-b from-[#b80006] via-[#f40009] to-[#ff1a22]"
-      ></div>
-
-      <div class="relative z-10 flex h-[100dvh] items-center justify-center px-6 pb-[240px] pt-10">
-        <div class="w-full max-w-md">
-          <div class="mb-6 flex items-center justify-center">
-            <img
-              id="brandLogo"
-              src="/assets/logo.png"
-              alt="Coca-Cola"
-              class="w-40 min-[360px]:w-44 min-[420px]:w-48"
-            />
+  <body>
+    <div class="wrap">
+      <div class="center">
+        <div class="box">
+          <div class="logo">
+            <img id="brandLogo" src="/assets/logo.png" alt="Coca-Cola" />
           </div>
-          <div
-            id="loginCard"
-            class="rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl md:p-8"
-          >
-            <div class="mb-6">
-              <div class="text-lg font-semibold tracking-wide">销售赋能中心</div>
-              <div class="mt-1 text-sm text-white/80">使用企业账号登录</div>
-            </div>
+          <div class="card" id="loginCard">
+            <h1>销售赋能中心</h1>
+            <p>使用企业账号登录</p>
 
-            <form id="loginForm" class="space-y-4">
-              <div>
-                <label class="mb-1 block text-xs text-white/80">账号</label>
-                <input
-                  id="username"
-                  autocomplete="username"
-                  inputmode="text"
-                  class="h-12 w-full rounded-2xl border border-white/20 bg-white/10 px-4 text-[16px] text-white/95 placeholder:text-white/35 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-                  placeholder="请输入账号"
-                />
-              </div>
-              <div>
-                <label class="mb-1 block text-xs text-white/80">密码</label>
-                <input
-                  id="password"
-                  type="password"
-                  autocomplete="current-password"
-                  class="h-12 w-full rounded-2xl border border-white/20 bg-white/10 px-4 text-[16px] text-white/95 placeholder:text-white/35 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-                  placeholder="请输入密码"
-                />
-              </div>
-              <div id="errorText" class="hidden text-sm text-white/90"></div>
-              <button
-                type="submit"
-                class="mt-2 h-12 w-full rounded-2xl bg-white font-semibold text-cokeRed shadow-lg shadow-black/15 transition active:scale-[0.99]"
-              >
-                登录
-              </button>
+            <form id="loginForm">
+              <label for="username">账号</label>
+              <input id="username" autocomplete="username" inputmode="text" placeholder="请输入账号" />
+              <label for="password">密码</label>
+              <input id="password" type="password" autocomplete="current-password" placeholder="请输入密码" />
+              <div id="errorText" class="error"></div>
+              <button type="submit" class="submit">登录</button>
             </form>
           </div>
-          <div
-            id="slogan"
-            class="mt-6 text-center text-xs text-white/70 tracking-[0.2em]"
-          >
-            DingSheng 2030 - 数智引领增长
-          </div>
+          <div class="slogan" id="slogan">DingSheng 2030 - 数智引领增长</div>
         </div>
       </div>
 
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0">
-        <div class="relative w-[200%] opacity-95" style="animation: ribbonShift 16s linear infinite">
-          <svg viewBox="0 0 1440 220" class="h-[220px] w-full" preserveAspectRatio="none">
+      <div class="ribbon" aria-hidden="true">
+        <div class="ribbon-inner">
+          <svg viewBox="0 0 1440 220" height="220" width="100%" preserveAspectRatio="none">
             <path
               fill="white"
               fill-opacity="1"
@@ -113,7 +216,6 @@
           </svg>
         </div>
       </div>
-
     </div>
 
     <script>
@@ -133,7 +235,7 @@
 
         const showError = (msg) => {
           errorText.textContent = String(msg || "");
-          errorText.classList.toggle("hidden", !errorText.textContent);
+          errorText.classList.toggle("show", Boolean(errorText.textContent));
         };
 
         const runLoginTransition = () =>

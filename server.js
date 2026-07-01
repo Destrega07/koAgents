@@ -594,6 +594,11 @@ function createServer() {
       return;
     }
 
+    if (pathname === "/storage.js") {
+      sendFile(res, path.join(ROOT_DIR, "storage.js"));
+      return;
+    }
+
     if (pathname === "/koAgentList.txt") {
       sendFile(res, path.join(ROOT_DIR, "koAgentList.txt"));
       return;
