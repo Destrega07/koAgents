@@ -1,0 +1,26 @@
+已执行 执行指令7.md ，对【需求验证与洞察】完成“防重清洗 + Slot 视觉/交互升级 + 提示语+按钮并排与点亮逻辑”。
+
+1) Coze 返回内容去重与清洗（截断防重）
+
+- 在 sliceNeedInsightMarkdown 内加入“第二次主标题即截断”逻辑：一旦检测到第二个 # / ## 需求深度洞察分析报告 ，直接丢弃后续内容，确保只渲染单份报告。
+- 代码位置： sliceNeedInsightMarkdown
+2) Slot 卡片视觉优化 + 勾选高亮
+
+- Slot Section 的标题沿用 needles-section-title （左侧 4px Coke Red 轴线）。
+- 报告卡片左右 padding 提升到 24px 的呼吸感。
+- 勾选后 Slot 卡片增加 .is-highlighted ，背景/边框平滑变红调；取消勾选复原。
+- 代码位置：
+  - 勾选高亮与变更事件： renderNeedInsightSlotSection
+  - CSS 高亮与内边距： index.html
+3) 提示语精简 + 按钮并排 + 点亮状态机
+
+- 删除原本占整行的底部按钮行。
+- 将提示语与红色主按钮放进同一个 Callout（flex 并排，右侧按钮）。
+- 按钮默认置灰 ；只有当“报告已渲染存在”且 至少勾选 1 个 Slot 时，按钮才点亮可点；勾选变化实时刷新按钮状态。
+- 代码位置（核心逻辑）： renderNeedInsight
+交付：你要看的两个核心代码片段
+
+- 截断防重过滤 （关键行）：
+  - app.js
+- 按钮点亮判断 （anyChecked + updateGoEnabled）：
+  - app.js

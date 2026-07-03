@@ -1,0 +1,43 @@
+# 角色与目标
+你是一位在文本流清洗、高级正则表达式构建以及容器响应式样式隔离方面拥有深厚造诣的全栈架构专家。
+我们在 `app.js` 和 `index.html` 的重构中存在严重漏洞，导致解析时出现双份报告（截断失效）、Slot 顺序错乱以及文本依然贴边的现象。
+本轮任务：彻底修复 Markdown 防重清洗机制、纠正 CSS 页面边距隔离。
+
+## 核心漏洞修复与开发指令
+
+1. 升级【智能防重清洗与截断算法】
+目前 `sliceNeedInsightMarkdown` 函数中的正则 `/(^|\n)#{1,2}\s*.../g` 过于死板。Coze 返回的原始文本中，第一份报告主标题可能没有 `#` 号，导致 `matches` 只匹配到 1 个，截断逻辑失效。
+- **无感多模匹配**：请将该正则修改为支持匹配包含或不包含 `#` 标记的泛匹配规则：
+```javascript
+  // 兼容匹配: "## 需求深度洞察分析报告"、"# 需求深度洞察分析报告" 以及裸文本 "需求深度洞察分析报告"
+  const mainTitleRe = /(?:^|\n)(?:#{1,3}\s*)?需求深度洞察分析报告\s*(?:\n|$)/g;
+```
+- 确保扫描全文本时，一旦 matches.length >= 2，坚决执行 slice 截断，仅保留第一份报告。
+
+2. 重写【文本块切片器捕获边界】
+为了防止支持需求错位跑到底部，必须将 pickBlock 和 pickSub 两个提取函数的正则修改为“前瞻/后顾防御型隔离边界”：
+提取三级或四级标题时，其结束边界除了匹配相同的标题级别外，必须显式包含任意更高级别的标题标记（如 \n##  或 \n# ）以及文本流末尾 $，防止贪婪吞噬后续大板块内容。
+
+3. 像素级修复报告排边距 
+app.js 中的 renderNeedInsightTextBlock 使用了 .needles-report-section，但 index.html 中缺失了它的样式。
+
+请在 index.html 的 <style> 中，为 .needles-report-section 补充和 Slot 卡片完全一致的视觉呼吸感：
+
+```CSS
+  .needles-report-section {
+    padding: 12px 24px !important;
+    margin-bottom: 16px;
+  }
+  .needles-report-section .md-content {
+    color: var(--text);
+    line-height: 1.7;
+    padding-left: 12px;
+  }
+```
+
+4. 常驻呈现 Coze 原始内容
+保持在【需求验证与洞察】模块最下方常驻呈现未解析前的原始 Coze 文本流（rawText）折叠区，不要隐藏，用于后续调试排查格式漂移。
+
+交付标准
+点击深度解析后，页面必须截断多余内容，呈现单份高级感报告。
+

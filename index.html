@@ -14,6 +14,7 @@
     <style>
       :root {
         --coke-red: #f40009;
+        --gold: #f59e0b;
         --bg: #f3f4f6;
         --panel: #ffffff;
         --border: #e5e7eb;
@@ -1183,6 +1184,31 @@
         flex: 0 0 auto;
       }
 
+      .confirm-ack {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(244, 0, 9, 0.18);
+        background: rgba(244, 0, 9, 0.06);
+      }
+
+      .confirm-ack input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 2px 0 0;
+        accent-color: var(--coke-red);
+        flex: 0 0 auto;
+      }
+
+      .confirm-ack label {
+        cursor: pointer;
+        user-select: none;
+        font-weight: 600;
+        color: #7f1d1d;
+      }
+
       .md {
         color: var(--text);
         line-height: 1.7;
@@ -1305,6 +1331,50 @@
         padding: 0 !important;
       }
 
+      .needles-report-card .proposal-viewer.md h2 {
+        margin: 0.75rem 0 0.35rem;
+      }
+
+      .needles-report-card .proposal-viewer.md h3 {
+        margin: 0.55rem 0 0.3rem;
+      }
+
+      .needles-report-card .proposal-viewer.md h2 + h3 {
+        margin-top: 1.05rem;
+      }
+
+      .proposal-progress {
+        display: none;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: #ffffff;
+      }
+
+      .proposal-progress .label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        margin-bottom: 8px;
+      }
+
+      .proposal-progress .track {
+        height: 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        background: rgba(245, 158, 11, 0.06);
+        overflow: hidden;
+      }
+
+      .proposal-progress .fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(244, 0, 9, 0.9), rgba(245, 158, 11, 0.92));
+        transition: width 180ms ease;
+      }
+
       .raw-details {
         border-top: 1px solid var(--border);
         padding: 10px 12px;
@@ -1419,6 +1489,148 @@
       .needles-report-section {
         padding: 12px 24px !important;
         margin-bottom: 16px;
+      }
+
+      .ni-collab-btn {
+        text-align: left;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .ni-select-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ni-select-wrap .card-selector-cb {
+        margin: 0;
+      }
+
+      .ni-wall {
+        display: grid;
+        gap: 14px;
+        padding: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        align-items: start;
+      }
+
+      .ni-report-card {
+        position: relative;
+      }
+
+      .ni-report-card.is-expanded {
+        grid-column: 1 / -1;
+      }
+
+      .ni-report-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 18px 0;
+      }
+
+      .ni-report-meta {
+        font-size: 12px;
+        font-weight: 800;
+        color: #374151;
+        letter-spacing: 0.02em;
+      }
+
+      .card-selector-cb {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--coke-red);
+      }
+
+      .ni-merge-zone {
+        margin: 6px 14px 14px;
+        border-left: 4px solid var(--coke-red);
+        background: rgba(244, 0, 9, 0.04);
+      }
+
+      .ni-merge-head {
+        padding: 12px 18px 0;
+      }
+
+      .ni-merge-title {
+        font-weight: 900;
+        color: #111827;
+      }
+
+      .ni-merge-body {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .ni-popover {
+        position: fixed;
+        z-index: 80;
+        background: #ffffff;
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        border-radius: 14px;
+        box-shadow: 0 20px 40px rgba(17, 24, 39, 0.16);
+        overflow: hidden;
+      }
+
+      .ni-popover-head {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+        background: #fbfbfc;
+      }
+
+      .ni-popover-title {
+        font-size: 12px;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: 0.06em;
+      }
+
+      .ni-popover-body {
+        padding: 10px 12px;
+        max-height: min(48vh, 320px);
+        overflow: auto;
+      }
+
+      .ni-popover-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .ni-popover-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: #ffffff;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .ni-popover-item:hover {
+        background: #f9fafb;
+      }
+
+      .ni-popover-item input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--coke-red);
+      }
+
+      .ni-popover-foot {
+        padding: 10px 12px;
+        border-top: 1px solid rgba(229, 231, 235, 0.9);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        background: #fbfbfc;
       }
 
       .needles-report-section .md-content {
@@ -1756,11 +1968,11 @@
           <div class="nav-group">
             <div class="nav-group-title">客户管理中台</div>
             <button class="nav-btn" id="navMainLead" type="button" aria-current="page">
-              <span>潜客开发</span>
+              <span>潜客开发·普客管理</span>
               <small>Lead</small>
             </button>
             <button class="nav-btn" id="navMainCoop" type="button">
-              <span>合作客户管理</span>
+              <span>战略客户管理</span>
               <small>KA</small>
             </button>
           </div>
@@ -1772,6 +1984,9 @@
             </button>
             <button class="nav-btn" id="btnImportBackup" type="button">
               <span>导入恢复</span>
+            </button>
+            <button class="nav-btn" id="btnClearRecords" type="button">
+              <span>清空记录</span>
             </button>
             <div class="nav-hint">*客户数据保存在本设备中，不上云，如更换设备，请导出备份，新设备中导入恢复。</div>
             <input id="inputImportFile" type="file" accept="application/json,.json" hidden />

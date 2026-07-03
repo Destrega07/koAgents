@@ -341,6 +341,16 @@ async function importBackup(payload) {
   return true;
 }
 
+async function clearAllData() {
+  await withDb("readwrite", ["customers", "collaborators", "module_data", "facts_7c_cards"], async (stores) => {
+    await promisifyRequest(stores.customers.clear());
+    await promisifyRequest(stores.collaborators.clear());
+    await promisifyRequest(stores.module_data.clear());
+    await promisifyRequest(stores.facts_7c_cards.clear());
+  });
+  return true;
+}
+
 async function listFacts7cCards() {
   return getAll("facts_7c_cards");
 }
@@ -379,5 +389,6 @@ export {
   deleteFacts7cCards,
   exportBackup,
   importBackup,
+  clearAllData,
   clearStore,
 };

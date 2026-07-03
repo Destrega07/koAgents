@@ -13,6 +13,7 @@ import {
   deleteCollaborator,
   exportBackup,
   importBackup,
+  clearAllData,
   moveLeadToCoopByCopy,
   getModuleData,
   setModuleData,
@@ -25,6 +26,7 @@ const el = {
   navMainCoop: document.getElementById("navMainCoop"),
   btnExportBackup: document.getElementById("btnExportBackup"),
   btnImportBackup: document.getElementById("btnImportBackup"),
+  btnClearRecords: document.getElementById("btnClearRecords"),
   inputImportFile: document.getElementById("inputImportFile"),
   pageTitle: document.getElementById("pageTitle"),
   pageSubtitle: document.getElementById("pageSubtitle"),
@@ -43,8 +45,8 @@ const el = {
 const MAIN = {
   lead: {
     key: "lead",
-    title: "潜客开发",
-    subtitle: "从潜客到成交：档案 → 线索 → 洞察 → 价值 → 提案",
+    title: "潜客开发·普客管理",
+    subtitle: "【积累信息（客户档案）（合作者档案）】->【洞悉机会（需求线索）（需求验证与洞察）】-> 【精准提案（价值主张创造）（提案剧本）】",
     type: "潜客",
     modules: [
       { key: "customers", title: "客户档案" },
@@ -57,8 +59,8 @@ const MAIN = {
   },
   coop: {
     key: "coop",
-    title: "合作客户管理",
-    subtitle: "KA 运维：档案 → 舆情 → 动作预测 → 事实洞察",
+    title: "战略客户管理",
+    subtitle: "【积累信息（客户档案）（合作者档案）（舆情监测）（7C事实）】->【洞悉机会（7C洞察）（动作预测与先机洞察）】-> 【共创战略】->【精准提案】",
     type: "合作客户",
     modules: [
       { key: "customers", title: "客户档案" },
@@ -158,7 +160,14 @@ const state = {
     needInsightDocNames: new Map(),
     needInsightDrafts: new Map(),
     needInsightRaw: new Map(),
-    needInsightLoading: false,
+    needInsightLoading: new Set(),
+    needInsightSelectedCollabIds: new Map(),
+    needInsightSelectedReportIds: new Map(),
+    needInsightMergeDrafts: new Map(),
+    needInsightMergeRaw: new Map(),
+    needInsightMergeLoading: new Set(),
+    needInsightReportSaveTimers: new Map(),
+    needInsightMergeSaveTimers: new Map(),
     valuePropDrafts: new Map(),
     valuePropRaw: new Map(),
     valuePropLoading: new Set(),
@@ -168,6 +177,12 @@ const state = {
     proposalLoading: new Set(),
     proposalDraftTimers: new Map(),
     proposalEditMode: new Map(),
+    proposalCollabSelection: new Map(),
+    proposalCollabCustomDrafts: new Map(),
+    proposalCollabCustomDraftTimers: new Map(),
+    proposalCollabCustomEditMode: new Map(),
+    proposalCollabCustomLoading: new Set(),
+    proposalCollabProgressHoldUntil: new Map(),
     coach: {
       open: false,
       isMax: false,
@@ -244,6 +259,54 @@ function confirmModal({ title, body, bodyNode, bodyHtml, okText } = {}) {
       resolve(false);
     };
     el.modalOk.onclick = () => {
+      cleanup();
+      resolve(true);
+    };
+    el.modalBackdrop.onclick = (e) => {
+      if (e.target === el.modalBackdrop) {
+        cleanup();
+        resolve(false);
+      }
+    };
+  });
+}
+
+function confirmModalAcknowledge({ title, sentence, okText } = {}) {
+  return new Promise((resolve) => {
+    const wrap = document.createElement("div");
+    wrap.className = "confirm-ack";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = newId("ack");
+    const label = document.createElement("label");
+    label.setAttribute("for", checkbox.id);
+    label.textContent = String(sentence || "");
+    wrap.appendChild(checkbox);
+    wrap.appendChild(label);
+
+    openModal({ title, bodyNode: wrap, okText });
+    el.modalOk.disabled = true;
+
+    const onToggle = () => {
+      el.modalOk.disabled = !checkbox.checked;
+    };
+    checkbox.addEventListener("change", onToggle);
+
+    const cleanup = () => {
+      checkbox.removeEventListener("change", onToggle);
+      el.modalCancel.onclick = null;
+      el.modalOk.onclick = null;
+      el.modalBackdrop.onclick = null;
+      el.modalOk.disabled = false;
+      closeModal();
+    };
+
+    el.modalCancel.onclick = () => {
+      cleanup();
+      resolve(false);
+    };
+    el.modalOk.onclick = () => {
+      if (!checkbox.checked) return;
       cleanup();
       resolve(true);
     };
@@ -1512,6 +1575,101 @@ function sliceNeedInsightMarkdown(markdown) {
   };
 }
 
+function todayYMD() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function applyNeedInsightIntervieweesToBasicInfo(basicInfoMarkdown, collaboratorNames) {
+  const names = Array.isArray(collaboratorNames) ? collaboratorNames.map((x) => String(x ?? "").trim()).filter(Boolean) : [];
+  if (!names.length) return String(basicInfoMarkdown || "");
+  const joined = names.join("，");
+  let s = String(basicInfoMarkdown || "").replace(/\r\n/g, "\n").trim();
+  if (!s) return `- **访谈对象**：${joined}`;
+  const re1 = /^-\s*\*\*访谈对象\*\*\s*[：:]\s*.*$/m;
+  const re2 = /^-\s*访谈对象\s*[：:]\s*.*$/m;
+  if (re1.test(s)) return s.replace(re1, `- **访谈对象**：${joined}`);
+  if (re2.test(s)) return s.replace(re2, `- **访谈对象**：${joined}`);
+  return `${s}\n- **访谈对象**：${joined}`;
+}
+
+function normalizeNeedInsightReportsFromStored(stored) {
+  const s = stored && typeof stored === "object" ? stored : {};
+  const reports = Array.isArray(s.reports) ? s.reports.filter(Boolean) : [];
+  if (reports.length) return reports;
+  const report = typeof s.report === "string" ? String(s.report) : "";
+  const sliced = s && s.sliced ? s.sliced : null;
+  const rawStream = typeof s.rawStream === "string" ? String(s.rawStream) : "";
+  if (!report) return [];
+  return [
+    {
+      subReportId: newId("ni"),
+      createDate: todayYMD(),
+      collaboratorNames: [],
+      report,
+      sliced,
+      rawStream,
+      collapsed: false,
+    },
+  ];
+}
+
+function cleanNeedSlotTextForSelection(text) {
+  let t = String(text || "").trim();
+  t = t.replace(/^\[\s*[xX]?\s*\]\s*/g, "");
+  t = t.replace(/^\*\*([^*]+)\*\*\s*[：:]\s*/g, "$1：");
+  t = t.replace(/\*\*/g, "");
+  return t.trim();
+}
+
+function sliceNeedInsightMergeMarkdown(markdown) {
+  const md = String(markdown || "").replace(/\r\n/g, "\n");
+  const pickSection = (titlePattern) => {
+    const re = new RegExp(String.raw`(^|\n)#{1,6}\s*(?:${titlePattern})\s*\n([\s\S]*?)(?=(?:\n#{1,6}\s)|$)`, "i");
+    const m = md.match(re);
+    return m ? String(m[2] || "").trim() : "";
+  };
+
+  const basicInfo = pickSection("基础信息");
+  const conclusion = pickSection("合并洞察结论|合并洞察总结|合并洞察");
+  const beverageRole = pickSection("饮料角色");
+  const strategicOpportunity = pickSection("战略机会提示|机会提示");
+
+  const supportRaw = pickSection("支持需求");
+  const outcomeRaw = pickSection("成果需求");
+  const personalRaw = pickSection("个人需求");
+
+  const supportParsed = parseListItemsWithTail(supportRaw);
+  const outcomeParsed = parseListItemsWithTail(outcomeRaw);
+  const personalParsed = parseListItemsWithTail(personalRaw);
+
+  const toSlots = (parsed) =>
+    (Array.isArray(parsed?.items) ? parsed.items : [])
+      .map((s) => ({
+        text: cleanNeedSlotTextForSelection(String(s || "")),
+        checked: false,
+      }))
+      .filter((x) => String(x.text || "").trim());
+
+  return {
+    blocks: {
+      basicInfo,
+      conclusion,
+      beverageRole,
+      strategicOpportunity,
+      supportTail: String(supportParsed?.tail || "").trim(),
+      outcomeTail: String(outcomeParsed?.tail || "").trim(),
+      personalTail: String(personalParsed?.tail || "").trim(),
+    },
+    slots: {
+      support: toSlots(supportParsed),
+      outcome: toSlots(outcomeParsed),
+      personal: toSlots(personalParsed),
+    },
+  };
+}
+
 function renderNeedInsightTextBlock(title, markdown) {
   const wrap = document.createElement("div");
   wrap.className = "needles-report-section";
@@ -1526,7 +1684,7 @@ function renderNeedInsightTextBlock(title, markdown) {
   return wrap;
 }
 
-function renderNeedInsightSlotSection(title, slots, tailText) {
+function renderNeedInsightSlotSection(title, slots, tailText, onDirty) {
   const wrap = document.createElement("div");
   wrap.className = "needles-report-section";
   const h = document.createElement("div");
@@ -1548,6 +1706,7 @@ function renderNeedInsightSlotSection(title, slots, tailText) {
       if (slot.checked) card.classList.add("is-highlighted");
       else card.classList.remove("is-highlighted");
       if (typeof wrap._onSelectionChange === "function") wrap._onSelectionChange();
+      if (typeof onDirty === "function") onDirty();
     };
     if (slot.checked) card.classList.add("is-highlighted");
     const content = document.createElement("div");
@@ -1576,6 +1735,7 @@ function renderNeedInsightSlotSection(title, slots, tailText) {
     content.onblur = () => {
       content.contentEditable = "false";
       slot.text = String(content.textContent || "").trim();
+      if (typeof onDirty === "function") onDirty();
     };
     card.appendChild(cb);
     card.appendChild(content);
@@ -1912,6 +2072,75 @@ function stripProposalHeading(text) {
   return t.trim();
 }
 
+function enhanceProposalHtml(html) {
+  return String(html || "")
+    .replace(/【适用场景】/g, '<span class="tag">【适用场景】</span>')
+    .replace(/【沟通策略】/g, '<span class="tag">【沟通策略】</span>')
+    .replace(/【策略】/g, '<span class="tag">【策略】</span>')
+    .replace(/【话术示例】/g, '<span class="tag">【话术示例】</span>');
+}
+
+function escapeRegExp(text) {
+  return String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractLatestProposalCustomizationSection(allText, collaboratorName) {
+  const src = String(allText || "").replace(/\r\n/g, "\n");
+  const name = String(collaboratorName || "").trim();
+  if (!src.trim() || !name) return "";
+  const n = escapeRegExp(name);
+  const re = new RegExp(
+    String.raw`(?:^|\n)【(?:合作者定制：\s*${n}\s*\|[^\n]*|话术定制对象：\s*${n})】[\s\S]*?(?=(?:\n【(?:合作者定制：|话术定制对象：))|$)`,
+    "g",
+  );
+  const matches = src.match(re);
+  const last = matches && matches.length ? String(matches[matches.length - 1] || "") : "";
+  return last.replace(/^\n/, "").trim();
+}
+
+function upsertProposalCustomizationSection(allText, collaboratorName, sectionText) {
+  const src0 = String(allText || "").replace(/\r\n/g, "\n");
+  const name = String(collaboratorName || "").trim();
+  const section = String(sectionText || "").replace(/\r\n/g, "\n").trim();
+  if (!name || !section) return src0.trim();
+  const n = escapeRegExp(name);
+  const re = new RegExp(
+    String.raw`(?:^|\n)【(?:合作者定制：\s*${n}\s*\|[^\n]*|话术定制对象：\s*${n})】[\s\S]*?(?=(?:\n【(?:合作者定制：|话术定制对象：))|$)`,
+    "g",
+  );
+  const cleaned = src0.replace(re, "").replace(/\n{3,}/g, "\n\n").trim();
+  return cleaned ? `${cleaned}\n\n${section}`.replace(/\n{3,}/g, "\n\n").trim() : section;
+}
+
+function normalizeProposalCustomizationText(text) {
+  let t = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const anchor = /(^|\n)#{1,6}\s*一、现场破防讲解话术\s*(?:\n|$)/;
+  const m = t.match(anchor);
+  if (m && typeof m.index === "number") {
+    t = t.slice(m.index + (m[1] ? 1 : 0)).trim();
+  } else {
+    t = t.replace(/^\s*#{1,6}\s*针对[^\n]*\n+/i, "");
+  }
+  t = t.replace(/(^##[^\n]*\n)(###)/gm, "$1\n$2");
+  t = t.replace(/([^\n])\n(?!\n|#{1,6}\s|[-*]\s|\d+\.\s|\||<pre><code>)/g, "$1\n\n");
+  t = t.replace(/\n{3,}/g, "\n\n").trim();
+  return t;
+}
+
+function setProposalCustomizationProgress({ visible, pct } = {}) {
+  const root = document.getElementById("proposalCollabProgress");
+  if (!root) return;
+  if (!visible) {
+    root.style.display = "none";
+    const fill = root.querySelector(".fill");
+    if (fill) fill.style.width = "0%";
+    return;
+  }
+  root.style.display = "block";
+  const fill = root.querySelector(".fill");
+  if (fill) fill.style.width = `${Math.max(0, Math.min(100, Number(pct) || 0))}%`;
+}
+
 async function runValuePropPipeline(customerId, pipeline_context) {
   const cid = String(customerId || "");
   if (!cid) return;
@@ -2117,6 +2346,7 @@ async function runProposalPipeline(customerId, proposal_federal_context) {
     await setModuleData(cid, "proposal", {
       proposal_federal_context,
       content: finalText,
+      lastCozeAnswerText: String(completed && completed.trim() ? completed : mergedDelta || acc || "").trim(),
       rawStream: raw,
       updatedAt: new Date().toISOString(),
     });
@@ -2130,6 +2360,121 @@ async function runProposalPipeline(customerId, proposal_federal_context) {
   } finally {
     clearTimeout(timeoutId);
     state.ui.proposalLoading.delete(cid);
+    refresh();
+  }
+}
+
+async function runProposalCollaboratorCustomization(customerId, collaboratorId) {
+  const cid = String(customerId || "");
+  const colId = String(collaboratorId || "");
+  if (!cid) return toast("请先选择客户");
+  if (!colId) return toast("请先选择合作者");
+
+  const collaborator = state.collaborators.find((c) => String(c.id || "") === colId) || null;
+  if (!collaborator) return toast("未找到该合作者档案");
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+  let acc = "";
+  const colName = String(collaborator?.name || collaborator?.company || collaborator?.id || "合作者").trim();
+  const header = `【话术定制对象：${colName}】`;
+
+  state.ui.proposalCollabCustomLoading.add(cid);
+  state.ui.proposalCollabCustomEditMode.set(cid, false);
+  state.ui.proposalCollabCustomDrafts.set(cid, { content: "" });
+  refresh();
+  setProposalCustomizationProgress({ visible: true, pct: 6 });
+  const progStartAt = Date.now();
+  let done = false;
+  const progTimer = setInterval(() => {
+    if (done) return;
+    const elapsed = Math.max(0, Date.now() - progStartAt);
+    const ratio = Math.min(1, elapsed / 60000);
+    const eased = Math.pow(ratio, 0.82);
+    const pct = Math.min(92, 6 + eased * 86);
+    setProposalCustomizationProgress({ visible: true, pct });
+  }, 900);
+
+  try {
+    const latest = (await getModuleData(cid, "proposal")) || {};
+    const baseText = stripProposalHeading(String(latest?.content || "")).trim();
+    if (!baseText || baseText === "生成中…") return toast("请先生成提案剧本，再进行合作者定制");
+
+    const colPayload = {
+      id: String(collaborator.id || ""),
+      name: String(collaborator.name || ""),
+      company: String(collaborator.company || ""),
+      position: String(collaborator.position || ""),
+      personality: collaborator.personality || "",
+      personalityConfidence: collaborator.personalityConfidence ?? null,
+      commStyle: collaborator.commStyle || "",
+      commStyleConfidence: collaborator.commStyleConfidence ?? null,
+      decisionPreference: collaborator.decisionPreference || "",
+      decisionPreferenceConfidence: collaborator.decisionPreferenceConfidence ?? null,
+      commUpdatedYmd: collaborator.commUpdatedYmd || "",
+      analysisSamples: collaborator.analysisSamples ?? null,
+      relationChangeHint: collaborator.relationChangeHint || "",
+      commSuggestions: Array.isArray(collaborator.commSuggestions) ? collaborator.commSuggestions : [],
+      otherNotes: collaborator.otherNotes || "",
+      relationStatus: String(collaborator.relationStatus || ""),
+    };
+
+    const ctxStr = JSON.stringify({
+      proposal_content: baseText,
+      collaborator: colPayload,
+    });
+
+    const reqBody = {
+      bot_id: "7553662475095867442",
+      user_id: getOrCreateUserId(),
+      stream: true,
+      message: ctxStr,
+      collaborator_customization_context: ctxStr,
+    };
+
+    const { mergedDelta, completed, aborted } = await streamCozeAnswerText(reqBody, {
+      signal: controller.signal,
+      onDelta: (d) => {
+        acc += String(d || "");
+      },
+    });
+
+    done = true;
+    clearInterval(progTimer);
+    setProposalCustomizationProgress({ visible: true, pct: 100 });
+    const holdUntil = Date.now() + 900;
+    state.ui.proposalCollabProgressHoldUntil.set(cid, holdUntil);
+    setTimeout(() => {
+      if (state.ui.proposalCollabCustomLoading.has(cid)) return;
+      const hu = Number(state.ui.proposalCollabProgressHoldUntil.get(cid) || 0);
+      if (!hu || Date.now() < hu) return;
+      state.ui.proposalCollabProgressHoldUntil.delete(cid);
+      setProposalCustomizationProgress({ visible: false, pct: 0 });
+    }, 980);
+
+    const finalText = String((completed && completed.trim() ? completed : mergedDelta) || acc || "").trim();
+    const normalized = normalizeProposalCustomizationText(finalText);
+    const sectionText = `${header}\n${normalized}`.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    state.ui.proposalCollabCustomDrafts.set(cid, { content: sectionText });
+    if (aborted) toast("网络响应稍慢，系统正在努力为您加载并解析数据档案...");
+    const prevStoredAll = String(latest?.collaboratorCustomContent || "").trim();
+    const joinedAll = upsertProposalCustomizationSection(prevStoredAll, colName, sectionText);
+    await setModuleData(cid, "proposal", {
+      ...latest,
+      collaboratorCustomContent: joinedAll,
+      lastCozeAnswerText: String(completed && completed.trim() ? completed : mergedDelta || acc || "").trim(),
+      updatedAt: new Date().toISOString(),
+    });
+    if (!aborted) toast("已生成合作者定制话术");
+  } catch (e) {
+    const isAbort = String(e?.name || "") === "AbortError" || String(e?.message || "").toLowerCase().includes("aborted");
+    if (isAbort) toast("网络响应稍慢，系统正在努力为您加载并解析数据档案...");
+    if (!isAbort) toast(String(e?.message || e));
+  } finally {
+    done = true;
+    clearInterval(progTimer);
+    clearTimeout(timeoutId);
+    state.ui.proposalCollabCustomLoading.delete(cid);
     refresh();
   }
 }
@@ -4276,125 +4621,371 @@ async function renderNeedLeads() {
   return container;
 }
 
+function openMultiSelectPopover({ anchorEl, title, options, selected, onApply } = {}) {
+  const anchor = anchorEl;
+  if (!anchor) return;
+  const opts = Array.isArray(options) ? options.filter(Boolean) : [];
+  const initial = selected instanceof Set ? new Set([...selected]) : new Set();
+
+  try {
+    openMultiSelectPopover._cleanup?.();
+  } catch {}
+
+  const pop = document.createElement("div");
+  pop.className = "ni-popover";
+
+  const head = document.createElement("div");
+  head.className = "ni-popover-head";
+  const ht = document.createElement("div");
+  ht.className = "ni-popover-title";
+  ht.textContent = String(title || "请选择");
+  head.appendChild(ht);
+
+  const body = document.createElement("div");
+  body.className = "ni-popover-body";
+
+  const list = document.createElement("div");
+  list.className = "ni-popover-list";
+  for (const o of opts) {
+    const id = String(o.id || "");
+    const label = String(o.label || "");
+    if (!id) continue;
+    const row = document.createElement("label");
+    row.className = "ni-popover-item";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = initial.has(id);
+    cb.onchange = () => {
+      if (cb.checked) initial.add(id);
+      else initial.delete(id);
+    };
+    const span = document.createElement("span");
+    span.textContent = label || id;
+    row.appendChild(cb);
+    row.appendChild(span);
+    list.appendChild(row);
+  }
+  body.appendChild(list);
+
+  const foot = document.createElement("div");
+  foot.className = "ni-popover-foot";
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "btn";
+  cancel.textContent = "取消";
+  const ok = document.createElement("button");
+  ok.type = "button";
+  ok.className = "btn btn-primary";
+  ok.textContent = "应用";
+  foot.appendChild(cancel);
+  foot.appendChild(ok);
+
+  pop.appendChild(head);
+  pop.appendChild(body);
+  pop.appendChild(foot);
+  document.body.appendChild(pop);
+
+  const rect = anchor.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const desiredW = Math.min(360, Math.max(260, rect.width));
+  pop.style.width = `${desiredW}px`;
+  const left = Math.min(vw - desiredW - 12, Math.max(12, rect.left));
+  const top = Math.min(vh - 12, rect.bottom + 8);
+  pop.style.left = `${left}px`;
+  pop.style.top = `${top}px`;
+
+  const cleanup = () => {
+    try {
+      document.removeEventListener("mousedown", onDocDown, true);
+    } catch {}
+    try {
+      pop.remove();
+    } catch {}
+    openMultiSelectPopover._cleanup = null;
+  };
+
+  const onDocDown = (e) => {
+    if (!e) return;
+    const t = e.target;
+    if (t === anchor || anchor.contains(t)) return;
+    if (t === pop || pop.contains(t)) return;
+    cleanup();
+  };
+
+  cancel.onclick = () => cleanup();
+  ok.onclick = () => {
+    if (typeof onApply === "function") onApply(new Set([...initial]));
+    cleanup();
+  };
+
+  document.addEventListener("mousedown", onDocDown, true);
+  openMultiSelectPopover._cleanup = cleanup;
+}
+
+async function runNeedInsightMergePipeline(customerId, merge_federal_context) {
+  const cid = String(customerId || "");
+  if (!cid) return;
+  state.ui.needInsightMergeLoading.add(cid);
+  state.ui.needInsightMergeDrafts.set(cid, { content: "" });
+  refresh();
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+  let acc = "";
+  let lastRefreshAt = 0;
+  const scheduleRefresh = () => {
+    const now = Date.now();
+    if (now - lastRefreshAt < 140) return;
+    lastRefreshAt = now;
+    if (state.moduleKey === "need_insight") refresh();
+  };
+
+  try {
+    const ctxStr = JSON.stringify(merge_federal_context || {});
+    const reqBody = {
+      bot_id: "7658141846765928474",
+      user_id: getOrCreateUserId(),
+      stream: true,
+      message: ctxStr,
+      merge_federal_context: ctxStr,
+    };
+    const { raw, mergedDelta, completed, aborted } = await streamCozeAnswerText(reqBody, {
+      signal: controller.signal,
+      onDelta: (d) => {
+        acc += String(d || "");
+        state.ui.needInsightMergeDrafts.set(cid, { content: acc });
+        scheduleRefresh();
+      },
+    });
+    const finalText = String((completed && completed.trim() ? completed : mergedDelta) || acc || "").trim();
+    state.ui.needInsightMergeDrafts.set(cid, { content: finalText });
+    state.ui.needInsightMergeRaw.set(cid, raw);
+    if (aborted) toast("网络响应稍慢，系统正在努力为您加载并解析数据档案...");
+    const latest = (await getModuleData(cid, "need_insight")) || {};
+    const mergeSliced = sliceNeedInsightMergeMarkdown(finalText);
+    await setModuleData(cid, "need_insight", {
+      ...latest,
+      mergeReport: finalText,
+      mergeSliced,
+      mergeUpdatedAt: new Date().toISOString(),
+      lastCozeAnswerText: String(completed && completed.trim() ? completed : mergedDelta || acc || "").trim(),
+    });
+    if (!aborted) toast("需求合并解读已生成");
+  } catch (e) {
+    const isAbort = String(e?.name || "") === "AbortError" || String(e?.message || "").toLowerCase().includes("aborted");
+    if (isAbort) toast("网络响应稍慢，系统正在努力为您加载并解析数据档案...");
+    if (!isAbort) toast(String(e?.message || e));
+  } finally {
+    clearTimeout(timeoutId);
+    state.ui.needInsightMergeLoading.delete(cid);
+    refresh();
+  }
+}
+
 async function renderNeedInsight() {
   const container = document.createElement("div");
   container.style.display = "grid";
   container.style.gap = "12px";
 
-  const context = document.createElement("div");
-  context.className = "panel";
-  const header = document.createElement("div");
-  header.className = "panel-header";
-  const left = document.createElement("div");
-  left.className = "panel-tools";
-  left.style.display = "flex";
-  left.style.alignItems = "center";
-  left.style.gap = "12px";
-  const label = document.createElement("div");
-  label.className = "panel-title";
-  label.textContent = "客户选择";
-  const select = document.createElement("select");
-  select.className = "select";
-  select.appendChild(new Option("请选择客户…", ""));
-  for (const c of state.customers) select.appendChild(new Option(c.name || "未命名客户", c.id));
-  select.value = state.selectedCustomerId || "";
-  select.onchange = () => {
-    state.selectedCustomerId = String(select.value || "");
-    refreshUploadHint();
-    refresh();
-  };
-
-  const uploadBtn = document.createElement("button");
-  uploadBtn.type = "button";
-  uploadBtn.className = "btn";
-  uploadBtn.textContent = "上传文档";
-  const uploadHint = document.createElement("span");
-  uploadHint.className = "draft-status";
-  const refreshUploadHint = () => {
-    const cid = String(state.selectedCustomerId || "");
-    const name = cid ? String(state.ui.needInsightDocNames.get(cid) || "") : "";
-    uploadHint.textContent = name ? `已上传：${name}` : "";
-  };
-  refreshUploadHint();
   const fileInput = document.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "text/plain,.txt";
   fileInput.hidden = true;
+
+  const cid = String(state.selectedCustomerId || "");
+  const collabs = cid ? state.collaborators.filter((c) => String(c.customerId || "") === cid) : [];
+  const selectedCollabIds = state.ui.needInsightSelectedCollabIds.get(cid) instanceof Set ? state.ui.needInsightSelectedCollabIds.get(cid) : new Set();
+  const selectedCollabNames = collabs
+    .filter((c) => selectedCollabIds.has(String(c.id || "")))
+    .map((c) => String(c.name || "").trim())
+    .filter(Boolean);
+
+  const refreshUploadHintText = () => {
+    const name = cid ? String(state.ui.needInsightDocNames.get(cid) || "") : "";
+    return name ? `已上传：${name}` : "";
+  };
+
+  const selectedReportSet =
+    state.ui.needInsightSelectedReportIds.get(cid) instanceof Set ? state.ui.needInsightSelectedReportIds.get(cid) : new Set();
+  const busy = state.ui.needInsightLoading.has(cid) || state.ui.needInsightMergeLoading.has(cid);
+
+  const afterSelectNode = (() => {
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "10px";
+
+    const collabBtn = document.createElement("button");
+    collabBtn.type = "button";
+    collabBtn.className = "select ni-collab-btn";
+    collabBtn.disabled = !cid || !collabs.length;
+    collabBtn.textContent = selectedCollabNames.length ? `访谈对象：${selectedCollabNames.join("，")}` : "合作者选择（可多选）";
+    collabBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!cid || !collabs.length) return;
+      openMultiSelectPopover({
+        anchorEl: collabBtn,
+        title: "合作者选择（可多选）",
+        options: collabs.map((c) => ({ id: String(c.id || ""), label: String(c.name || "未命名合作者") })),
+        selected: selectedCollabIds,
+        onApply: (set) => {
+          state.ui.needInsightSelectedCollabIds.set(cid, set);
+          refresh();
+        },
+      });
+    };
+
+    const uploadBtn = document.createElement("button");
+    uploadBtn.type = "button";
+    uploadBtn.className = "btn";
+    uploadBtn.textContent = "上传文档";
+    uploadBtn.disabled = !cid || busy;
+    uploadBtn.onclick = () => fileInput.click();
+
+    const uploadHint = document.createElement("span");
+    uploadHint.className = "draft-status";
+    uploadHint.textContent = refreshUploadHintText();
+
+    const analyzeBtn = document.createElement("button");
+    analyzeBtn.type = "button";
+    analyzeBtn.className = "btn";
+    analyzeBtn.textContent = "深度解析";
+    analyzeBtn.disabled = !cid || busy;
+
+    const mergeBtn = document.createElement("button");
+    mergeBtn.type = "button";
+    mergeBtn.className = "btn btn-primary";
+    mergeBtn.textContent = "需求合并解读";
+    mergeBtn.disabled = !cid || busy || selectedReportSet.size < 2;
+
+    analyzeBtn.onclick = async () => {
+      const cid2 = String(state.selectedCustomerId || "");
+      if (!cid2) return toast("请先选择客户");
+      const customer = state.customers.find((c) => c.id === cid2);
+      if (!customer) return toast("未找到客户档案");
+      const doc = String(state.ui.needInsightDocs.get(cid2) || "").trim();
+      if (!doc) return toast("请先上传文档（txt）");
+
+      const collabs2 = state.collaborators.filter((c) => String(c.customerId || "") === cid2);
+      const ids2 = state.ui.needInsightSelectedCollabIds.get(cid2) instanceof Set ? state.ui.needInsightSelectedCollabIds.get(cid2) : new Set();
+      const names2 = collabs2
+        .filter((c) => ids2.has(String(c.id || "")))
+        .map((c) => String(c.name || "").trim())
+        .filter(Boolean);
+
+      state.ui.needInsightLoading.add(cid2);
+      refresh();
+      try {
+        const intervieweesLine = names2.length ? `访谈对象：${names2.join("，")}\n\n` : "";
+        const message = `客户名称：${customer.name || ""}\n\n${intervieweesLine}对话文档：\n${doc}`;
+        const { raw, lastJson, dataLines } = await fetchCozeChatStream({
+          bot_id: "7536874275736354857",
+          user_id: getOrCreateUserId(),
+          stream: true,
+          message,
+        });
+        const extracted = extractCozeAssistantText(lastJson);
+        const fromStream = extractLikelyNeedInsightMarkdownFromSseData(dataLines);
+        const reportText = extracted && extracted.trim() ? extracted : fromStream;
+        const sliced = sliceNeedInsightMarkdown(reportText);
+
+        const stored = await getModuleData(cid2, "need_insight");
+        const existingReports = normalizeNeedInsightReportsFromStored(stored);
+        const next = [
+          ...existingReports,
+          {
+            subReportId: newId("ni"),
+            createDate: todayYMD(),
+            collaboratorNames: names2,
+            report: reportText,
+            sliced,
+            rawStream: raw,
+            collapsed: false,
+          },
+        ];
+
+        await setModuleData(cid2, "need_insight", {
+          ...(stored || {}),
+          reports: next,
+          lastCozeAnswerText: String(reportText || "").trim(),
+        });
+
+        toast("深度洞察已生成");
+        state.ui.needInsightDocs.delete(cid2);
+        state.ui.needInsightDocNames.delete(cid2);
+        refresh();
+      } catch (e) {
+        toast(String(e?.message || e));
+      } finally {
+        state.ui.needInsightLoading.delete(cid2);
+        refresh();
+      }
+    };
+
+    mergeBtn.onclick = async () => {
+      const cid2 = String(state.selectedCustomerId || "");
+      if (!cid2) return;
+      const stored = await getModuleData(cid2, "need_insight");
+      const reports = normalizeNeedInsightReportsFromStored(stored);
+      const set = state.ui.needInsightSelectedReportIds.get(cid2) instanceof Set ? state.ui.needInsightSelectedReportIds.get(cid2) : new Set();
+      const picked = reports.filter((r) => set.has(String(r.subReportId || "")));
+      if (picked.length < 2) return toast("请至少选择两张报告卡片");
+      const customerFull = (await getByKey("customers", cid2)) || state.customers.find((c) => c.id === cid2) || null;
+      const merge_federal_context = pruneForCoze({
+        customerProfile: customerFull,
+        reports: picked.map((r) => ({
+          subReportId: String(r.subReportId || ""),
+          createDate: String(r.createDate || ""),
+          collaboratorNames: Array.isArray(r.collaboratorNames) ? r.collaboratorNames : [],
+          blocks: r?.sliced?.blocks || {},
+          slots: {
+            support: Array.isArray(r?.sliced?.slots?.support) ? r.sliced.slots.support.map((x) => ({ text: String(x?.text || "") })) : [],
+            outcome: Array.isArray(r?.sliced?.slots?.outcome) ? r.sliced.slots.outcome.map((x) => ({ text: String(x?.text || "") })) : [],
+            personal: Array.isArray(r?.sliced?.slots?.personal) ? r.sliced.slots.personal.map((x) => ({ text: String(x?.text || "") })) : [],
+          },
+        })),
+      });
+      runNeedInsightMergePipeline(cid2, merge_federal_context);
+    };
+
+    wrap.appendChild(collabBtn);
+    wrap.appendChild(uploadBtn);
+    wrap.appendChild(uploadHint);
+    wrap.appendChild(analyzeBtn);
+    wrap.appendChild(mergeBtn);
+    return wrap;
+  })();
+
+  container.appendChild(
+    renderCustomerContextBar({
+      selectedId: cid,
+      onChange: (v) => {
+        state.selectedCustomerId = v;
+        refresh();
+      },
+      afterSelectNode,
+    }),
+  );
+  container.appendChild(fileInput);
+
   fileInput.onchange = () => {
     (async () => {
       const file = fileInput.files && fileInput.files[0];
       fileInput.value = "";
       if (!file) return;
-      const cid = String(state.selectedCustomerId || "");
-      if (!cid) return toast("请先选择客户");
+      const cid2 = String(state.selectedCustomerId || "");
+      if (!cid2) return toast("请先选择客户");
       const text = await readFileAsText(file);
-      state.ui.needInsightDocs.set(cid, text);
-      state.ui.needInsightDocNames.set(cid, file.name);
+      state.ui.needInsightDocs.set(cid2, text);
+      state.ui.needInsightDocNames.set(cid2, file.name);
       toast(`已上传：${file.name}`);
-      refreshUploadHint();
       refresh();
     })();
   };
-  uploadBtn.onclick = () => fileInput.click();
-
-  const analyzeBtn = document.createElement("button");
-  analyzeBtn.type = "button";
-  analyzeBtn.className = "btn btn-primary";
-  analyzeBtn.textContent = "深度解析";
-  analyzeBtn.onclick = async () => {
-    const cid = String(state.selectedCustomerId || "");
-    if (!cid) return toast("请先选择客户");
-    const customer = state.customers.find((c) => c.id === cid);
-    if (!customer) return toast("未找到客户档案");
-    const doc = String(state.ui.needInsightDocs.get(cid) || "").trim();
-    if (!doc) return toast("请先上传文档（txt）");
-    state.ui.needInsightLoading = true;
-    refresh();
-    try {
-      const message = `客户名称：${customer.name || ""}\n\n对话文档：\n${doc}`;
-      const { raw, lastJson, dataLines } = await fetchCozeChatStream({
-        bot_id: "7536874275736354857",
-        user_id: getOrCreateUserId(),
-        stream: true,
-        message,
-      });
-      const extracted = extractCozeAssistantText(lastJson);
-      const fromStream = extractLikelyNeedInsightMarkdownFromSseData(dataLines);
-      const report = extracted && extracted.trim() ? extracted : fromStream;
-      const sliced = sliceNeedInsightMarkdown(report);
-
-      state.ui.needInsightDrafts.set(cid, { report, sliced });
-      state.ui.needInsightRaw.set(cid, raw);
-      await setModuleData(cid, "need_insight", {
-        report,
-        sliced,
-        rawStream: raw,
-      });
-      toast("深度洞察已生成");
-      state.ui.needInsightDocs.delete(cid);
-      state.ui.needInsightDocNames.delete(cid);
-      refreshUploadHint();
-      refresh();
-    } catch (e) {
-      toast(String(e?.message || e));
-    } finally {
-      state.ui.needInsightLoading = false;
-      refresh();
-    }
-  };
-
-  left.appendChild(label);
-  left.appendChild(select);
-  left.appendChild(uploadBtn);
-  left.appendChild(uploadHint);
-  left.appendChild(analyzeBtn);
-  header.appendChild(left);
-  context.appendChild(header);
-  context.appendChild(fileInput);
-  container.appendChild(context);
 
   const { panel } = renderPanelHeader({ title: `${MAIN[state.mainKey].title} · 需求验证与洞察` });
-  const cid = String(state.selectedCustomerId || "");
   if (!cid) {
     panel.appendChild(renderMarkdownPlaceholder("请先选择一个客户。"));
     container.appendChild(panel);
@@ -4402,12 +4993,12 @@ async function renderNeedInsight() {
   }
 
   const stored = await getModuleData(cid, "need_insight");
-  const draft = state.ui.needInsightDrafts.get(cid);
-  const report = (draft && draft.report) || (typeof stored?.report === "string" ? stored.report : "");
-  const sliced = (draft && draft.sliced) || (stored && stored.sliced ? stored.sliced : null);
-  const debugText = report || "";
+  const reports = normalizeNeedInsightReportsFromStored(stored);
+  if (stored && typeof stored === "object" && !Array.isArray(stored.reports) && reports.length) {
+    setModuleData(cid, "need_insight", { ...(stored || {}), reports }).catch(() => {});
+  }
 
-  if (state.ui.needInsightLoading) {
+  if (state.ui.needInsightLoading.has(cid)) {
     const loading = document.createElement("div");
     loading.className = "ai-loading";
     const spinner = document.createElement("div");
@@ -4420,86 +5011,335 @@ async function renderNeedInsight() {
     panel.appendChild(loading);
   }
 
-  if (!report) {
+  const scheduleSaveReports = () => {
+    const prev = state.ui.needInsightReportSaveTimers.get(cid);
+    if (prev) clearTimeout(prev);
+    const t = setTimeout(async () => {
+      state.ui.needInsightReportSaveTimers.delete(cid);
+      const latest = (await getModuleData(cid, "need_insight")) || {};
+      await setModuleData(cid, "need_insight", { ...latest, reports, updatedAt: new Date().toISOString() });
+    }, 650);
+    state.ui.needInsightReportSaveTimers.set(cid, t);
+  };
+
+  if (!reports.length) {
     panel.appendChild(renderMarkdownPlaceholder("暂无洞察报告。请上传文档后点击“深度解析”。"));
-  } else if (!sliced) {
-    panel.appendChild(renderMarkdownPlaceholder(report));
   } else {
-    const card = document.createElement("div");
-    card.className = "needles-report-card";
-    const b = sliced.blocks || {};
-    card.appendChild(renderNeedInsightTextBlock("基础信息", b.basicInfo));
-    if (b.oralNeeds) card.appendChild(renderNeedInsightTextBlock("口述需求", b.oralNeeds));
-    const supportSection = renderNeedInsightSlotSection("支持需求", sliced.slots?.support, b.supportTail);
-    const outcomeSection = renderNeedInsightSlotSection("成果需求", sliced.slots?.outcome, b.outcomeTail);
-    const personalSection = renderNeedInsightSlotSection("个人需求", sliced.slots?.personal, b.personalTail);
-    card.appendChild(supportSection);
-    card.appendChild(outcomeSection);
-    card.appendChild(personalSection);
-    if (b.beverageRole) card.appendChild(renderNeedInsightTextBlock("饮料角色", b.beverageRole));
-    if (b.keyAssumptions) card.appendChild(renderNeedInsightTextBlock("需验证的关键假设", b.keyAssumptions));
-    if (b.strategicOpportunity) card.appendChild(renderNeedInsightTextBlock("战略机会提示", b.strategicOpportunity));
+    const wall = document.createElement("div");
+    wall.className = "ni-wall";
 
-    const anyChecked = () => {
-      const check = (arr) => (Array.isArray(arr) ? arr.some((s) => s && s.checked === true && String(s.text || "").trim()) : false);
-      return check(sliced.slots?.support) || check(sliced.slots?.outcome) || check(sliced.slots?.personal);
-    };
+    const selectedSet =
+      state.ui.needInsightSelectedReportIds.get(cid) instanceof Set ? state.ui.needInsightSelectedReportIds.get(cid) : new Set();
 
-    const calloutWrap = document.createElement("div");
-    calloutWrap.className = "needles-report-section";
-    const callout = document.createElement("div");
-    callout.className = "hint-callout hint-callout-row";
-    const calloutText = document.createElement("span");
-    calloutText.innerHTML = "💡 <strong>提示</strong>：请校准报告内容，勾选你打算支持的客户需求，点击右侧红色按钮，系统将围绕需求设计价值主张。";
-    const goBtn = document.createElement("button");
-    goBtn.type = "button";
-    goBtn.className = "btn btn-primary";
-    goBtn.textContent = "围绕需求创造价值主张";
-    goBtn.disabled = !anyChecked();
-    const updateGoEnabled = () => {
-      goBtn.disabled = !anyChecked();
-    };
-    supportSection._onSelectionChange = updateGoEnabled;
-    outcomeSection._onSelectionChange = updateGoEnabled;
-    personalSection._onSelectionChange = updateGoEnabled;
-
-    goBtn.onclick = async () => {
-      if (goBtn.disabled) return;
-      const selected = [];
-      const addChecked = (type, arr) => {
-        for (const s of Array.isArray(arr) ? arr : []) {
-          const t = String(s?.text || "").trim();
-          if (s && s.checked === true && t) selected.push({ type, text: t });
-        }
-      };
-      addChecked("支持需求", sliced?.slots?.support);
-      addChecked("成果需求", sliced?.slots?.outcome);
-      addChecked("个人需求", sliced?.slots?.personal);
-
-      const customerFull = (await getByKey("customers", cid)) || state.customers.find((c) => c.id === cid) || null;
-      const pipeline_context = pruneForCoze({
-        selectedNeeds: selected,
-        beverageRole: String(sliced?.blocks?.beverageRole || ""),
-        strategicOpportunity: String(sliced?.blocks?.strategicOpportunity || ""),
-        customerProfile: customerFull,
-      });
-
-      const existing = await getModuleData(cid, "need_insight");
-      await setModuleData(cid, "need_insight", { ...(existing || {}), pipeline_context });
-      await setModuleData(cid, "value_prop", { pipeline_context, report: "生成中…", sliced: null, rawStream: "" });
-      toast("选定需求已锚定，正在生成价值主张流水线...");
-      runValuePropPipeline(cid, pipeline_context);
-      state.moduleKey = "value_prop";
-      setHashFromState();
+    const toggleSelected = (id, checked) => {
+      const next = new Set([...selectedSet]);
+      if (checked) next.add(id);
+      else next.delete(id);
+      state.ui.needInsightSelectedReportIds.set(cid, next);
       refresh();
     };
 
-    callout.appendChild(calloutText);
-    callout.appendChild(goBtn);
-    calloutWrap.appendChild(callout);
-    card.appendChild(calloutWrap);
+    const ordered = [...reports].sort((a, b) => String(b.createDate || "").localeCompare(String(a.createDate || "")));
+    for (const rep of ordered) {
+      const subId = String(rep.subReportId || "");
+      if (!subId) continue;
+      const card = document.createElement("div");
+      card.className = `ni-report-card needles-report-card${rep.collapsed !== true ? " is-expanded" : ""}`;
+      card.dataset.subReportId = subId;
 
-    panel.appendChild(card);
+      const head = document.createElement("div");
+      head.className = "ni-report-head";
+      const meta = document.createElement("div");
+      meta.className = "ni-report-meta";
+      meta.textContent = String(rep.createDate || "");
+
+      const iconbar = document.createElement("div");
+      iconbar.className = "iconbar";
+
+      const selWrap = document.createElement("label");
+      selWrap.className = "iconbtn ni-select-wrap";
+      selWrap.title = "选择此卡片";
+      const selector = document.createElement("input");
+      selector.type = "checkbox";
+      selector.className = "card-selector-cb";
+      selector.checked = selectedSet.has(subId);
+      selector.onchange = () => toggleSelected(subId, selector.checked);
+      selWrap.appendChild(selector);
+      iconbar.appendChild(selWrap);
+
+      iconbar.appendChild(
+        makeIconBtn({
+          title: "折叠",
+          iconPath: "M7 14l5-5 5 5",
+          disabled: rep.collapsed === true,
+          onClick: async () => {
+            rep.collapsed = true;
+            const latest = (await getModuleData(cid, "need_insight")) || {};
+            await setModuleData(cid, "need_insight", { ...latest, reports, updatedAt: new Date().toISOString() });
+            refresh();
+          },
+        }),
+      );
+      iconbar.appendChild(
+        makeIconBtn({
+          title: "展开",
+          iconPath: "M7 10l5 5 5-5",
+          disabled: rep.collapsed !== true,
+          onClick: async () => {
+            rep.collapsed = false;
+            const latest = (await getModuleData(cid, "need_insight")) || {};
+            await setModuleData(cid, "need_insight", { ...latest, reports, updatedAt: new Date().toISOString() });
+            refresh();
+          },
+        }),
+      );
+      iconbar.appendChild(
+        makeIconBtn({
+          title: "删除",
+          iconPath: "M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6",
+          onClick: async () => {
+            const ok = await confirmModal({
+              title: "删除洞察报告",
+              body: `确认删除该报告卡片吗？\n\n${String(rep.createDate || "")}`,
+              okText: "删除",
+            });
+            if (!ok) return;
+            const latest = (await getModuleData(cid, "need_insight")) || {};
+            const latestReports = normalizeNeedInsightReportsFromStored(latest);
+            const next = latestReports.filter((r) => String(r.subReportId || "") !== subId);
+            await setModuleData(cid, "need_insight", { ...latest, reports: next, updatedAt: new Date().toISOString() });
+            const set =
+              state.ui.needInsightSelectedReportIds.get(cid) instanceof Set ? state.ui.needInsightSelectedReportIds.get(cid) : new Set();
+            if (set.has(subId)) {
+              const nextSet = new Set([...set]);
+              nextSet.delete(subId);
+              state.ui.needInsightSelectedReportIds.set(cid, nextSet);
+            }
+            refresh();
+            toast("已删除报告");
+          },
+        }),
+      );
+
+      head.appendChild(meta);
+      head.appendChild(iconbar);
+      card.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "ni-report-body";
+
+      const sliced = rep && rep.sliced ? rep.sliced : null;
+      if (!sliced) {
+        body.appendChild(renderMarkdownPlaceholder(String(rep.report || "")));
+      } else {
+        const b = sliced.blocks || {};
+        const basic = applyNeedInsightIntervieweesToBasicInfo(b.basicInfo, rep.collaboratorNames);
+        body.appendChild(renderNeedInsightTextBlock("基础信息", basic));
+        if (rep.collapsed !== true) {
+          if (b.oralNeeds) body.appendChild(renderNeedInsightTextBlock("口述需求", b.oralNeeds));
+          const supportSection = renderNeedInsightSlotSection("支持需求", sliced.slots?.support, b.supportTail, scheduleSaveReports);
+          const outcomeSection = renderNeedInsightSlotSection("成果需求", sliced.slots?.outcome, b.outcomeTail, scheduleSaveReports);
+          const personalSection = renderNeedInsightSlotSection("个人需求", sliced.slots?.personal, b.personalTail, scheduleSaveReports);
+          body.appendChild(supportSection);
+          body.appendChild(outcomeSection);
+          body.appendChild(personalSection);
+          if (b.beverageRole) body.appendChild(renderNeedInsightTextBlock("饮料角色", b.beverageRole));
+          if (b.keyAssumptions) body.appendChild(renderNeedInsightTextBlock("需验证的关键假设", b.keyAssumptions));
+          if (b.strategicOpportunity) body.appendChild(renderNeedInsightTextBlock("战略机会提示", b.strategicOpportunity));
+
+          const anyChecked = () => {
+            const check = (arr) => (Array.isArray(arr) ? arr.some((s) => s && s.checked === true && String(s.text || "").trim()) : false);
+            return check(sliced.slots?.support) || check(sliced.slots?.outcome) || check(sliced.slots?.personal);
+          };
+
+          const calloutWrap = document.createElement("div");
+          calloutWrap.className = "needles-report-section";
+          const callout = document.createElement("div");
+          callout.className = "hint-callout hint-callout-row";
+          const calloutText = document.createElement("span");
+          calloutText.innerHTML =
+            "💡 <strong>提示</strong>：请校准报告内容，勾选你打算支持的客户需求，点击右侧红色按钮，系统将围绕需求设计价值主张。";
+          const goBtn = document.createElement("button");
+          goBtn.type = "button";
+          goBtn.className = "btn btn-primary";
+          goBtn.textContent = "围绕需求创造价值主张";
+          goBtn.disabled = !anyChecked();
+          const updateGoEnabled = () => {
+            goBtn.disabled = !anyChecked();
+            scheduleSaveReports();
+          };
+          supportSection._onSelectionChange = updateGoEnabled;
+          outcomeSection._onSelectionChange = updateGoEnabled;
+          personalSection._onSelectionChange = updateGoEnabled;
+
+          goBtn.onclick = async () => {
+            if (goBtn.disabled) return;
+            const selected = [];
+            const addChecked = (type, arr) => {
+              for (const s of Array.isArray(arr) ? arr : []) {
+                const t = String(s?.text || "").trim();
+                if (s && s.checked === true && t) selected.push({ type, text: t });
+              }
+            };
+            addChecked("支持需求", sliced?.slots?.support);
+            addChecked("成果需求", sliced?.slots?.outcome);
+            addChecked("个人需求", sliced?.slots?.personal);
+
+            const customerFull = (await getByKey("customers", cid)) || state.customers.find((c) => c.id === cid) || null;
+            const pipeline_context = pruneForCoze({
+              selectedNeeds: selected,
+              beverageRole: String(sliced?.blocks?.beverageRole || ""),
+              strategicOpportunity: String(sliced?.blocks?.strategicOpportunity || ""),
+              customerProfile: customerFull,
+            });
+
+            const existing = await getModuleData(cid, "need_insight");
+            await setModuleData(cid, "need_insight", { ...(existing || {}), pipeline_context });
+            await setModuleData(cid, "value_prop", { pipeline_context, report: "生成中…", sliced: null, rawStream: "" });
+            toast("选定需求已锚定，正在生成价值主张流水线...");
+            runValuePropPipeline(cid, pipeline_context);
+            state.moduleKey = "value_prop";
+            setHashFromState();
+            refresh();
+          };
+
+          callout.appendChild(calloutText);
+          callout.appendChild(goBtn);
+          calloutWrap.appendChild(callout);
+          body.appendChild(calloutWrap);
+        }
+      }
+
+      card.appendChild(body);
+      wall.appendChild(card);
+    }
+    panel.appendChild(wall);
+
+    const mergeCard = document.createElement("div");
+    mergeCard.className = "ni-merge-zone needles-report-card";
+    const mergeHead = document.createElement("div");
+    mergeHead.className = "ni-merge-head";
+    const mergeTitle = document.createElement("div");
+    mergeTitle.className = "ni-merge-title";
+    mergeTitle.textContent = "需求合并解读（输出区）";
+    mergeHead.appendChild(mergeTitle);
+    mergeCard.appendChild(mergeHead);
+
+    const mergeBody = document.createElement("div");
+    mergeBody.className = "ni-merge-body";
+    const mergeText = (() => {
+      const draft = state.ui.needInsightMergeDrafts.get(cid);
+      const fromDraft = draft && typeof draft.content === "string" ? draft.content : "";
+      const storedText = stored && typeof stored.mergeReport === "string" ? stored.mergeReport : "";
+      return (fromDraft && fromDraft.trim() ? fromDraft : storedText) || "";
+    })();
+    if (state.ui.needInsightMergeLoading.has(cid) && !mergeText.trim()) {
+      mergeBody.appendChild(renderMarkdownPlaceholder("生成中…"));
+    } else if (!mergeText.trim()) {
+      mergeBody.appendChild(renderMarkdownPlaceholder("暂无合并解读内容。请在上方至少勾选 2 张报告卡片后点击“需求合并解读”。"));
+    } else {
+      const scheduleSaveMerge = () => {
+        const prev = state.ui.needInsightMergeSaveTimers.get(cid);
+        if (prev) clearTimeout(prev);
+        const t = setTimeout(async () => {
+          state.ui.needInsightMergeSaveTimers.delete(cid);
+          const latest = (await getModuleData(cid, "need_insight")) || {};
+          await setModuleData(cid, "need_insight", { ...latest, mergeSliced, mergeUpdatedAt: new Date().toISOString() });
+        }, 600);
+        state.ui.needInsightMergeSaveTimers.set(cid, t);
+      };
+
+      let mergeSliced =
+        stored && stored.mergeSliced && typeof stored.mergeSliced === "object" ? stored.mergeSliced : sliceNeedInsightMergeMarkdown(mergeText);
+      const hasAnySlot =
+        (Array.isArray(mergeSliced?.slots?.support) && mergeSliced.slots.support.length) ||
+        (Array.isArray(mergeSliced?.slots?.outcome) && mergeSliced.slots.outcome.length) ||
+        (Array.isArray(mergeSliced?.slots?.personal) && mergeSliced.slots.personal.length);
+      const seemsListy = /(^|\n)\s*-\s*\[\s*[xX]?\s*\]\s+/.test(String(mergeText || "").replace(/\r\n/g, "\n"));
+      if (!hasAnySlot && seemsListy) {
+        mergeSliced = sliceNeedInsightMergeMarkdown(mergeText);
+      }
+      if (stored && typeof stored === "object" && (!stored.mergeSliced || (!hasAnySlot && seemsListy))) {
+        setModuleData(cid, "need_insight", { ...(stored || {}), mergeSliced }).catch(() => {});
+      }
+
+      const b = mergeSliced?.blocks || {};
+      if (b.basicInfo) mergeBody.appendChild(renderNeedInsightTextBlock("基础信息", b.basicInfo));
+      if (b.conclusion) mergeBody.appendChild(renderNeedInsightTextBlock("合并洞察结论", b.conclusion));
+
+      const supportSection = renderNeedInsightSlotSection("支持需求", mergeSliced?.slots?.support, b.supportTail, scheduleSaveMerge);
+      const outcomeSection = renderNeedInsightSlotSection("成果需求", mergeSliced?.slots?.outcome, b.outcomeTail, scheduleSaveMerge);
+      const personalSection = renderNeedInsightSlotSection("个人需求", mergeSliced?.slots?.personal, b.personalTail, scheduleSaveMerge);
+      mergeBody.appendChild(supportSection);
+      mergeBody.appendChild(outcomeSection);
+      mergeBody.appendChild(personalSection);
+
+      if (b.beverageRole) mergeBody.appendChild(renderNeedInsightTextBlock("饮料角色", b.beverageRole));
+      if (b.strategicOpportunity) mergeBody.appendChild(renderNeedInsightTextBlock("战略机会提示", b.strategicOpportunity));
+
+      const anyChecked = () => {
+        const check = (arr) => (Array.isArray(arr) ? arr.some((s) => s && s.checked === true && String(s.text || "").trim()) : false);
+        return check(mergeSliced?.slots?.support) || check(mergeSliced?.slots?.outcome) || check(mergeSliced?.slots?.personal);
+      };
+
+      const calloutWrap = document.createElement("div");
+      calloutWrap.className = "needles-report-section";
+      const callout = document.createElement("div");
+      callout.className = "hint-callout hint-callout-row";
+      const calloutText = document.createElement("span");
+      calloutText.innerHTML =
+        "💡 <strong>提示</strong>：请校准报告内容，勾选你打算支持的客户需求，点击右侧红色按钮，系统将围绕需求设计价值主张。";
+      const goBtn = document.createElement("button");
+      goBtn.type = "button";
+      goBtn.className = "btn btn-primary";
+      goBtn.textContent = "围绕需求创造价值主张";
+      goBtn.disabled = !anyChecked();
+      const updateGoEnabled = () => {
+        goBtn.disabled = !anyChecked();
+        scheduleSaveMerge();
+      };
+      supportSection._onSelectionChange = updateGoEnabled;
+      outcomeSection._onSelectionChange = updateGoEnabled;
+      personalSection._onSelectionChange = updateGoEnabled;
+
+      goBtn.onclick = async () => {
+        if (goBtn.disabled) return;
+        const selected = [];
+        const addChecked = (type, arr) => {
+          for (const s of Array.isArray(arr) ? arr : []) {
+            const t = String(s?.text || "").trim();
+            if (s && s.checked === true && t) selected.push({ type, text: t });
+          }
+        };
+        addChecked("支持需求", mergeSliced?.slots?.support);
+        addChecked("成果需求", mergeSliced?.slots?.outcome);
+        addChecked("个人需求", mergeSliced?.slots?.personal);
+
+        const customerFull = (await getByKey("customers", cid)) || state.customers.find((c) => c.id === cid) || null;
+        const pipeline_context = pruneForCoze({
+          selectedNeeds: selected,
+          beverageRole: String(b.beverageRole || ""),
+          strategicOpportunity: String(b.strategicOpportunity || ""),
+          customerProfile: customerFull,
+        });
+
+        const existing = await getModuleData(cid, "need_insight");
+        await setModuleData(cid, "need_insight", { ...(existing || {}), pipeline_context });
+        await setModuleData(cid, "value_prop", { pipeline_context, report: "生成中…", sliced: null, rawStream: "" });
+        toast("选定需求已锚定，正在生成价值主张流水线...");
+        runValuePropPipeline(cid, pipeline_context);
+        state.moduleKey = "value_prop";
+        setHashFromState();
+        refresh();
+      };
+
+      callout.appendChild(calloutText);
+      callout.appendChild(goBtn);
+      calloutWrap.appendChild(callout);
+      mergeBody.appendChild(calloutWrap);
+    }
+    mergeCard.appendChild(mergeBody);
+    panel.appendChild(mergeCard);
   }
 
   const details = document.createElement("details");
@@ -4508,7 +5348,8 @@ async function renderNeedInsight() {
   summary.textContent = "Coze端原始深度洞察内容折叠区（调试）";
   const pre = document.createElement("pre");
   pre.className = "raw-pre";
-  pre.textContent = debugText ? String(debugText) : "暂无内容";
+  const last = stored && typeof stored.lastCozeAnswerText === "string" ? String(stored.lastCozeAnswerText) : "";
+  pre.textContent = last ? last : "暂无内容";
   details.appendChild(summary);
   details.appendChild(pre);
   panel.appendChild(details);
@@ -4652,8 +5493,11 @@ async function renderValueProp() {
       await setModuleData(cid, "value_prop", { ...(stored || {}), selectedPlans: picked });
 
       const needInsight = await getModuleData(cid, "need_insight");
+      const needInsightReports = Array.isArray(needInsight?.reports) ? needInsight.reports.filter(Boolean) : [];
+      const latestNeedInsight = needInsightReports.length ? needInsightReports[needInsightReports.length - 1] : null;
       const beverageRole =
-        String(needInsight?.sliced?.blocks?.beverageRole || "").trim() || String(needInsight?.pipeline_context?.beverageRole || "").trim();
+        String(latestNeedInsight?.sliced?.blocks?.beverageRole || "").trim() ||
+        String(needInsight?.pipeline_context?.beverageRole || "").trim();
       const customerFull = (await getByKey("customers", cid)) || state.customers.find((c) => c.id === cid) || null;
 
       const proposal_federal_context = pruneForCoze({
@@ -4703,10 +5547,76 @@ async function renderProposal() {
   const container = document.createElement("div");
   container.style.display = "grid";
   container.style.gap = "12px";
-  container.appendChild(renderCustomerContextBar());
 
   const cid = String(state.selectedCustomerId || "");
   const customerFull = cid ? (await getByKey("customers", cid)) || state.customers.find((c) => c.id === cid) || null : null;
+
+  const collabs = cid ? state.collaborators.filter((c) => String(c.customerId || "") === cid) : [];
+  const selectedCollabId = String(state.ui.proposalCollabSelection.get(cid) || "");
+  const selectedCollab = selectedCollabId ? collabs.find((c) => String(c.id || "") === selectedCollabId) || null : null;
+  const selectedCollabName = String(selectedCollab?.name || "").trim();
+  const afterSelectNode = (() => {
+    const busy = state.ui.proposalLoading.has(cid) || state.ui.proposalCollabCustomLoading.has(cid);
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "10px";
+
+    const sel = document.createElement("select");
+    sel.id = "proposalCollabSelect";
+    sel.className = "select";
+    sel.style.minWidth = "220px";
+    sel.appendChild(new Option("请选择合作者…", ""));
+    for (const c of collabs) sel.appendChild(new Option(String(c.name || "未命名合作者"), String(c.id || "")));
+    const remembered = String(state.ui.proposalCollabSelection.get(cid) || "");
+    sel.value = remembered && collabs.some((c) => String(c.id || "") === remembered) ? remembered : "";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-primary";
+    btn.textContent = "定制提案话术";
+    btn.disabled = busy || !cid || !collabs.length || !sel.value;
+    sel.disabled = !cid || !collabs.length;
+
+    sel.onchange = () => {
+      const v = String(sel.value || "");
+      state.ui.proposalCollabSelection.set(cid, v);
+      btn.disabled = busy || !v;
+    };
+
+    btn.onclick = async () => {
+      const v = String(sel.value || "");
+      if (!v) return toast("请先选择合作者");
+      await runProposalCollaboratorCustomization(cid, v);
+    };
+
+    wrap.appendChild(sel);
+    wrap.appendChild(btn);
+    return wrap;
+  })();
+
+  container.appendChild(renderCustomerContextBar({ afterSelectNode }));
+
+  const progress = document.createElement("div");
+  progress.id = "proposalCollabProgress";
+  progress.className = "proposal-progress";
+  const pl = document.createElement("div");
+  pl.className = "label";
+  pl.textContent = "正在生成合作者定制话术…";
+  const track = document.createElement("div");
+  track.className = "track";
+  const fill = document.createElement("div");
+  fill.className = "fill";
+  track.appendChild(fill);
+  progress.appendChild(pl);
+  progress.appendChild(track);
+  const holdUntil = Number(state.ui.proposalCollabProgressHoldUntil.get(cid) || 0);
+  const showProgress = state.ui.proposalCollabCustomLoading.has(cid) || (holdUntil && Date.now() < holdUntil);
+  if (showProgress) {
+    progress.style.display = "block";
+    if (!state.ui.proposalCollabCustomLoading.has(cid)) fill.style.width = "100%";
+  }
+  container.appendChild(progress);
 
   const tools = document.createElement("div");
   tools.className = "panel-tools";
@@ -4720,8 +5630,14 @@ async function renderProposal() {
     const draft = state.ui.proposalDrafts.get(cid);
     const text =
       (draft && typeof draft.content === "string" ? draft.content : "") || (latest && latest.content ? String(latest.content) : "");
+    const customDraft = state.ui.proposalCollabCustomDrafts.get(cid);
+    const customAll = latest && latest.collaboratorCustomContent ? String(latest.collaboratorCustomContent) : "";
+    const customStored = selectedCollabName ? extractLatestProposalCustomizationSection(customAll, selectedCollabName) : customAll;
+    const customText = (customDraft && typeof customDraft.content === "string" ? customDraft.content : "") || customStored;
+    const merged =
+      String(customText || "").trim() ? `${stripProposalHeading(String(text || ""))}\n\n===[针对该合作者的专属话术定制]===\n\n${String(customText || "").trim()}` : stripProposalHeading(String(text || ""));
     const name = String(customerFull?.name || cid || "客户");
-    const blob = new Blob([stripProposalHeading(String(text || ""))], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([merged], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -4743,7 +5659,7 @@ async function renderProposal() {
       (draft && typeof draft.content === "string" ? draft.content : "") || (latest && latest.content ? String(latest.content) : "");
     const text = stripProposalHeading(rawText);
     if (!text.trim()) return toast("暂无可导出的提案内容");
-    const html = `<div class="md">${enhance(markdownToSafeHtml(text))}</div>`;
+    const html = `<div class="md">${enhanceProposalHtml(markdownToSafeHtml(text))}</div>`;
     const name = String(customerFull?.name || cid || "客户");
     try {
       await exportHtmlToPng({ html, filename: `提案剧本_${name}_${todayYYYYMMDD()}.png`, widthPx: 1080 });
@@ -4769,13 +5685,6 @@ async function renderProposal() {
   const loading = state.ui.proposalLoading.has(cid) || storedContent === "生成中…";
   const contentRaw = loading ? draftContent || (storedContent === "生成中…" ? "" : storedContent) : draftContent || storedContent;
   const content = stripProposalHeading(contentRaw);
-
-  const enhance = (html) =>
-    String(html || "")
-      .replace(/【适用场景】/g, '<span class="tag">【适用场景】</span>')
-      .replace(/【沟通策略】/g, '<span class="tag">【沟通策略】</span>')
-      .replace(/【策略】/g, '<span class="tag">【策略】</span>')
-      .replace(/【话术示例】/g, '<span class="tag">【话术示例】</span>');
 
   if (loading) {
     const box = document.createElement("div");
@@ -4804,7 +5713,7 @@ async function renderProposal() {
 
   const viewer = document.createElement("div");
   viewer.className = "md proposal-viewer";
-  viewer.innerHTML = enhance(markdownToSafeHtml(String(content || "")));
+  viewer.innerHTML = enhanceProposalHtml(markdownToSafeHtml(String(content || "")));
 
   const textarea = document.createElement("textarea");
   textarea.className = "proposal-textarea";
@@ -4842,7 +5751,7 @@ async function renderProposal() {
     state.ui.proposalDrafts.set(cid, { content: next });
     textarea.style.display = "none";
     viewer.style.display = "block";
-    viewer.innerHTML = enhance(markdownToSafeHtml(next));
+    viewer.innerHTML = enhanceProposalHtml(markdownToSafeHtml(next));
     await saveNow(next);
   };
 
@@ -4875,6 +5784,107 @@ async function renderProposal() {
   section.appendChild(viewer);
   section.appendChild(textarea);
   card.appendChild(section);
+
+  const customStoredAll = stored && stored.collaboratorCustomContent ? String(stored.collaboratorCustomContent) : "";
+  const customStored = selectedCollabName ? extractLatestProposalCustomizationSection(customStoredAll, selectedCollabName) : "";
+  const customDraft = state.ui.proposalCollabCustomDrafts.get(cid);
+  const customDraftContent = customDraft && typeof customDraft.content === "string" ? customDraft.content : "";
+  const customLoading = state.ui.proposalCollabCustomLoading.has(cid);
+  const customContentRaw = customLoading ? customDraftContent : customDraftContent || customStored;
+  const customContent = String(customContentRaw || "").trim();
+
+  const customZone = document.createElement("div");
+  customZone.id = "proposalCollabCustomZone";
+  customZone.className = "needles-report-section";
+  customZone.style.cssText =
+    "margin-top: 20px; border-left: 4px solid var(--gold); background: rgba(245, 158, 11, 0.06); border-radius: 14px; border: 1px solid rgba(245, 158, 11, 0.18);";
+
+  const customViewer = document.createElement("div");
+  customViewer.id = "proposalCollabCustomViewer";
+  customViewer.className = "md proposal-viewer";
+  if (customLoading && !customContent) {
+    customViewer.innerHTML = enhanceProposalHtml(markdownToSafeHtml("生成中…"));
+  } else if (customContent) {
+    customViewer.innerHTML = enhanceProposalHtml(markdownToSafeHtml(customContent));
+  } else {
+    customViewer.innerHTML = "";
+    customViewer.appendChild(renderMarkdownPlaceholder("暂无合作者定制话术与Tips。请在上方选择合作者并点击“定制提案话术”。"));
+  }
+
+  const customTextarea = document.createElement("textarea");
+  customTextarea.id = "proposalCollabCustomTextarea";
+  customTextarea.className = "proposal-textarea";
+  customTextarea.value = customContent;
+  customTextarea.style.minHeight = "260px";
+  customTextarea.style.display = "none";
+
+  const saveCustomNow = async (text) => {
+    const latest = (await getModuleData(cid, "proposal")) || {};
+    const name = String(selectedCollabName || "").trim();
+    if (!name) return;
+    const header = `【话术定制对象：${name}】`;
+    const section = String(text || "").trim();
+    const normalizedSection = section.startsWith("【") ? section : `${header}\n${section}`;
+    const all = String(latest?.collaboratorCustomContent || "");
+    const joinedAll = upsertProposalCustomizationSection(all, name, normalizedSection);
+    await setModuleData(cid, "proposal", { ...latest, collaboratorCustomContent: joinedAll, updatedAt: new Date().toISOString() });
+  };
+
+  const scheduleCustomSave = (text) => {
+    const prev = state.ui.proposalCollabCustomDraftTimers.get(cid);
+    if (prev) clearTimeout(prev);
+    const t = setTimeout(() => {
+      state.ui.proposalCollabCustomDraftTimers.delete(cid);
+      saveCustomNow(text);
+    }, 650);
+    state.ui.proposalCollabCustomDraftTimers.set(cid, t);
+  };
+
+  const enterCustomEdit = () => {
+    if (customLoading) return;
+    state.ui.proposalCollabCustomEditMode.set(cid, true);
+    customTextarea.value = String(state.ui.proposalCollabCustomDrafts.get(cid)?.content ?? customContent ?? "");
+    customTextarea.style.display = "block";
+    customViewer.style.display = "none";
+    customTextarea.focus();
+    customTextarea.setSelectionRange(customTextarea.value.length, customTextarea.value.length);
+  };
+
+  const exitCustomEdit = async () => {
+    state.ui.proposalCollabCustomEditMode.set(cid, false);
+    const next = String(customTextarea.value || "").replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+    state.ui.proposalCollabCustomDrafts.set(cid, { content: next });
+    customTextarea.style.display = "none";
+    customViewer.style.display = "block";
+    customViewer.innerHTML = enhanceProposalHtml(markdownToSafeHtml(next));
+    await saveCustomNow(next);
+  };
+
+  customViewer.ondblclick = enterCustomEdit;
+  customTextarea.oninput = () => {
+    const next = String(customTextarea.value || "").replace(/\r\n/g, "\n");
+    state.ui.proposalCollabCustomDrafts.set(cid, { content: next });
+    scheduleCustomSave(next);
+  };
+  customTextarea.onblur = () => {
+    exitCustomEdit();
+  };
+  customTextarea.onkeydown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      customTextarea.value = String(state.ui.proposalCollabCustomDrafts.get(cid)?.content ?? customContent ?? "");
+      customTextarea.blur();
+    }
+  };
+
+  if (state.ui.proposalCollabCustomEditMode.get(cid) === true && !customLoading) {
+    customViewer.style.display = "none";
+    customTextarea.style.display = "block";
+  }
+
+  customZone.appendChild(customViewer);
+  customZone.appendChild(customTextarea);
+  card.appendChild(customZone);
   panel.appendChild(card);
 
   const details = document.createElement("details");
@@ -4883,7 +5893,8 @@ async function renderProposal() {
   summary.textContent = "Coze端原始对话分析内容折叠区（调试）";
   const pre = document.createElement("pre");
   pre.className = "raw-pre";
-  pre.textContent = content ? String(content) : "暂无内容";
+  const last = stored && stored.lastCozeAnswerText ? String(stored.lastCozeAnswerText) : "";
+  pre.textContent = last || (content ? String(content) : "暂无内容");
   details.appendChild(summary);
   details.appendChild(pre);
   panel.appendChild(details);
@@ -5227,7 +6238,7 @@ async function renderFacts7c() {
   const ui = state.ui.facts7c;
   if (!(ui.selectedIds instanceof Set)) ui.selectedIds = new Set();
   if (!ui.lastImportDelta || typeof ui.lastImportDelta !== "object") ui.lastImportDelta = { evidence: 0, insight: 0, action_hypothesis: 0 };
-  const DIM_OPTS = ["All", "Country", "Channel", "Category", "Consumer", "Customer", "Competitor", "SupplyChain", "Pricing", "Brand"];
+  const DIM_OPTS = ["All", "Country", "Channel", "Category", "Consumer", "Customer", "Competitor", "Company"];
 
   const tools = document.createElement("div");
   tools.className = "row";
@@ -5244,7 +6255,7 @@ async function renderFacts7c() {
   const dimSel = document.createElement("select");
   dimSel.className = "select";
   for (const o of DIM_OPTS) dimSel.appendChild(new Option(o, o));
-  dimSel.value = ui.businessDimension || "All";
+  dimSel.value = DIM_OPTS.includes(String(ui.businessDimension || "")) ? String(ui.businessDimension || "") : "All";
   dimSel.onchange = () => {
     ui.businessDimension = String(dimSel.value || "All");
     refresh();
@@ -5807,6 +6818,22 @@ async function init() {
       return toast(String(e?.message || e));
     }
     toast("导入完成，正在刷新…");
+    setTimeout(() => window.location.reload(), 400);
+  };
+
+  el.btnClearRecords.onclick = async () => {
+    const ok = await confirmModalAcknowledge({
+      title: "清空记录",
+      sentence: "清空记录要先备份才能恢复",
+      okText: "清空",
+    });
+    if (!ok) return;
+    try {
+      await clearAllData();
+    } catch (e) {
+      return toast(String(e?.message || e));
+    }
+    toast("已清空所有本地记录");
     setTimeout(() => window.location.reload(), 400);
   };
 

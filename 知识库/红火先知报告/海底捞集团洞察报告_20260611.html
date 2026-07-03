@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红火先知 | 海底捞集团洞察报告（优化版）</title>
+<style>
+  :root {
+    --coke-red: #CC0000;
+    --coke-red-dark: #A00000;
+    --coke-red-light: #F5E6E6;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --black-secondary: #333333;
+    --gold: #C4A962;
+    --gold-light: #F5F0E6;
+    --gray-bg: #FAFAFA;
+    --gray-border: #E5E5E5;
+    --gray-text: #666666;
+    --gray-light: #999999;
+    --tag-high: #CC0000;
+    --tag-high-bg: #F5E6E6;
+    --tag-mid: #C4A962;
+    --tag-mid-bg: #F5F0E6;
+    --tag-observe: #666666;
+    --tag-observe-bg: #F0F0F0;
+    --tag-opportunity: #1A7A2E;
+    --tag-opportunity-bg: #E8F5E9;
+    --tag-risk: #CC0000;
+    --tag-risk-bg: #F5E6E6;
+    --tag-id: #2C5F8D;
+    --tag-id-bg: #E6F0F7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--gray-bg);
+    color: var(--black-secondary);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .report-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--white);
+    box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    min-height: 100vh;
+  }
+
+  .report-header {
+    background: linear-gradient(135deg, var(--coke-red) 0%, var(--coke-red-dark) 100%);
+    color: var(--white);
+    padding: 56px 64px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border: 2px solid rgba(255,255,255,0.12); border-radius: 50%;
+  }
+  .header-label { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.75; margin-bottom: 12px; font-weight: 500; }
+  .header-title { font-size: 36px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; }
+  .header-subtitle { font-size: 15px; opacity: 0.8; margin-bottom: 24px; font-weight: 400; }
+  .header-meta { display: flex; gap: 32px; font-size: 13px; opacity: 0.7; flex-wrap: wrap; }
+
+  .summary-section { margin: -24px 48px 0; position: relative; z-index: 2; }
+  .summary-card {
+    background: var(--white); border-left: 4px solid var(--coke-red);
+    padding: 28px 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-radius: 2px;
+  }
+  .summary-label { font-size: 11px; letter-spacing: 2px; color: var(--coke-red); font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+  .summary-text { font-size: 16px; color: var(--black); line-height: 1.8; font-weight: 500; }
+
+  .content-body { padding: 48px 64px 64px; }
+  .section { margin-bottom: 48px; }
+  .section:last-child { margin-bottom: 0; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--coke-red);
+  }
+  .section-number { font-size: 13px; font-weight: 700; color: var(--coke-red); letter-spacing: 1px; white-space: nowrap; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--black); letter-spacing: 1px; }
+
+  .id-tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 1px 8px; border-radius: 3px; letter-spacing: 0.5px;
+    background: var(--tag-id-bg); color: var(--tag-id); margin-right: 6px;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 3px; letter-spacing: 0.5px; margin-right: 6px;
+  }
+  .tag-high { background: var(--tag-high-bg); color: var(--tag-high); }
+  .tag-mid { background: var(--tag-mid-bg); color: var(--tag-mid); }
+  .tag-observe { background: var(--tag-observe-bg); color: var(--tag-observe); }
+  .tag-opp { background: var(--tag-opportunity-bg); color: var(--tag-opportunity); }
+  .tag-risk { background: var(--tag-risk-bg); color: var(--tag-risk); }
+
+  .judgment-list { display: flex; flex-direction: column; gap: 16px; }
+  .judgment-item {
+    display: flex; gap: 16px; padding: 20px 24px;
+    background: var(--gray-bg); border-radius: 4px;
+    border-left: 3px solid var(--coke-red);
+  }
+  .judgment-num { font-size: 14px; font-weight: 700; color: var(--coke-red); min-width: 24px; flex-shrink: 0; }
+  .judgment-body { flex: 1; }
+  .judgment-title { font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+  .judgment-desc { font-size: 14px; color: var(--black-secondary); line-height: 1.7; }
+
+  .change-list { display: flex; flex-direction: column; gap: 20px; }
+  .change-item {
+    padding: 24px; background: var(--white);
+    border: 1px solid var(--gray-border); border-radius: 4px;
+    display: flex; gap: 20px;
+  }
+  .change-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--coke-red-light); color: var(--coke-red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+  }
+  .change-content { flex: 1; }
+  .change-title { font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .change-detail { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 8px; }
+  .change-implication {
+    font-size: 13px; color: var(--gray-text); font-style: italic;
+    border-left: 2px solid var(--gold); padding-left: 12px; margin-top: 8px;
+  }
+
+  .trend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .reasoning-card {
+    padding: 24px; border: 1px solid var(--gray-border);
+    border-radius: 4px; background: var(--white);
+    display: flex; flex-direction: column;
+  }
+  .reasoning-card.full { grid-column: 1 / -1; }
+  .reasoning-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+  .reasoning-card-title { font-size: 15px; font-weight: 600; color: var(--black); flex: 1; min-width: 200px; }
+  .reasoning-card-body { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 14px; }
+
+  .reasoning-fields {
+    border-top: 1px solid var(--gray-border);
+    padding-top: 12px; margin-top: auto;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .field-row {
+    display: flex; gap: 8px; font-size: 12px; line-height: 1.6;
+    align-items: flex-start;
+  }
+  .field-label {
+    color: var(--coke-red); font-weight: 700; min-width: 72px;
+    flex-shrink: 0; font-size: 11px; letter-spacing: 0.5px;
+  }
+  .field-value { color: var(--gray-text); flex: 1; }
+  .field-value strong { color: var(--black-secondary); }
+
+  .opp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .opp-card {
+    padding: 24px; border-radius: 4px;
+    border: 1px solid var(--gray-border); background: var(--white);
+    border-left: 3px solid var(--tag-opportunity);
+    display: flex; flex-direction: column;
+  }
+  .opp-card.risk { border-left-color: var(--tag-risk); }
+  .opp-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+  .opp-card-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .opp-card-body { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 14px; }
+  .opp-card-meta { font-size: 12px; color: var(--gray-light); line-height: 1.6; border-top: 1px solid var(--gray-border); padding-top: 10px; margin-bottom: 12px; }
+  .opp-card-meta strong { color: var(--coke-red); }
+
+  .verify-list { display: flex; flex-direction: column; gap: 16px; }
+  .verify-item {
+    padding: 20px 24px; border: 1px solid var(--gray-border);
+    border-radius: 4px; background: var(--white);
+    display: flex; gap: 16px;
+  }
+  .verify-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 6px; }
+  .verify-content { flex: 1; }
+  .verify-prop { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .verify-binding { font-size: 12px; color: var(--tag-id); margin-bottom: 6px; font-family: "SF Mono", Consolas, monospace; }
+  .verify-fields { display: flex; flex-direction: column; gap: 4px; }
+  .verify-fields .field-row { font-size: 12px; }
+
+  .chain-section { margin-bottom: 32px; }
+  .chain-section-title {
+    font-size: 16px; font-weight: 700; color: var(--black);
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--gray-border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chain-section-title .layer-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 3px;
+    background: var(--coke-red); color: var(--white); font-weight: 600;
+  }
+
+  .cluster-card {
+    padding: 16px 20px; background: var(--gray-bg); border-radius: 4px;
+    margin-bottom: 12px; border-left: 3px solid var(--gray-text);
+  }
+  .cluster-card-title { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .cluster-card-evidence {
+    font-size: 12px; color: var(--gray-text); line-height: 1.7;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .cluster-card-evidence .evid-id {
+    display: inline-block; background: var(--white); padding: 1px 6px;
+    border-radius: 2px; border: 1px solid var(--gray-border); margin: 1px 2px;
+    font-size: 11px;
+  }
+  .cluster-card-pattern {
+    font-size: 13px; color: var(--coke-red); margin-top: 6px;
+    font-style: italic;
+  }
+  .cluster-card-pattern::before { content: "=> 局部模式："; font-weight: 700; font-style: normal; }
+
+  .insight-card-mini {
+    padding: 16px 20px; background: var(--white);
+    border: 1px solid var(--gray-border); border-left: 3px solid var(--coke-red);
+    border-radius: 4px; margin-bottom: 12px;
+  }
+  .insight-card-mini-title { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .insight-card-mini-statement { font-size: 13px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 8px; }
+  .insight-card-mini-deps { font-size: 12px; color: var(--gray-text); font-family: "SF Mono", Consolas, monospace; }
+  .insight-card-mini-deps .dep-label { color: var(--coke-red); font-weight: 700; }
+
+  .mapping-card {
+    padding: 16px 20px; border-radius: 4px; margin-bottom: 12px;
+    border: 1px solid var(--gray-border);
+  }
+  .mapping-card.opp { border-left: 3px solid var(--tag-opportunity); background: var(--tag-opportunity-bg); }
+  .mapping-card.risk { border-left: 3px solid var(--tag-risk); background: var(--tag-risk-bg); }
+  .mapping-card-title { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .mapping-card-fields { font-size: 12px; color: var(--gray-text); line-height: 1.7; }
+  .mapping-card-fields .field-label { min-width: 60px; }
+
+  .report-footer {
+    border-top: 1px solid var(--gray-border);
+    padding: 24px 64px; display: flex; justify-content: space-between;
+    align-items: center; font-size: 12px; color: var(--gray-light);
+  }
+  .report-footer .disclaimer { font-style: italic; max-width: 70%; }
+
+  @media (max-width: 800px) {
+    .trend-grid, .opp-grid { grid-template-columns: 1fr; }
+    .content-body { padding: 32px 24px; }
+    .report-header { padding: 40px 32px 36px; }
+    .summary-section { margin: -20px 24px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="report-container">
+
+  <!-- ========== 1. 报告标题区 ========== -->
+  <header class="report-header">
+    <div class="header-label">Strategic Insight Report · Reasoning Chain Rebuilt</div>
+    <h1 class="header-title">红火先知 | 海底捞集团洞察报告（优化版）</h1>
+    <p class="header-subtitle">四层推理链结构：证据卡 → 证据簇/事实模式 → 中间洞察 → 趋势/机会/风险/待验证点</p>
+    <div class="header-meta">
+      <span>生成时间：2026年6月11日</span>
+      <span>推理结构：多证据·多阶·可追溯·可更新</span>
+      <span>报告性质：洞察层输出（非行动建议）</span>
+    </div>
+  </header>
+
+  <!-- ========== 摘要卡片 ========== -->
+  <div class="summary-section">
+    <div class="summary-card">
+      <div class="summary-label">一句话摘要</div>
+      <p class="summary-text">
+        海底捞集团正处于战略转型关键期：主品牌核心单店高溢价模式进入结构性放缓阶段（营收+1.1%、净利润-14%、翻台率4.1→3.9），增长逻辑正从单品牌内生增长转向加盟化与多品牌双轮驱动（加盟店13→79家，红石榴计划营收+214.6%）。组织治理经历张勇重返CEO、杨利娟回归统筹红石榴计划等密集调整，战略资源全面向多品牌扩张倾斜。三层价格带矩阵成型，饮料角色随价格带分化向"标准化+低复杂度+高复制性"方向迁移，同时外卖爆发式增长（+111.9%）与健康化趋势为饮品结构调整提供了新的底层驱动力。
+      </p>
+    </div>
+  </div>
+
+  <!-- ========== 正文内容 ========== -->
+  <div class="content-body">
+
+    <!-- ========== 2. 当前状态（中间洞察速览） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title">当前状态</h2>
+      </div>
+      <div class="judgment-list">
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I01</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">核心单店高溢价模式进入结构性放缓阶段，利润结构正在转型</div>
+            <div class="judgment-desc">2025财年营收432.25亿元（同比仅+1.1%），净利润40.42亿元（同比-14%），翻台率从4.1降至3.9次/天，同店销售降幅6.7%。原材料成本率从37.9%攀升至40.5%。核心经营指标全面承压，集团利润结构正从"单店溢价"转向"供应链优化+加盟商分成+新品牌规模化"的多元结构。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I02</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">增长逻辑从单品牌内生增长转向加盟化与多品牌双轮驱动</div>
+            <div class="judgment-desc">加盟餐厅从2024年底的13家快速增至2025年底的79家（其中45家由自营转加盟），自营店净减少51家；红石榴计划品牌数达20个、门店207家，全年营收15.21亿元（同比+214.6%）。大排档火锅确立未来3年500家店目标。集团正从"单一主品牌直营"向"主品牌加盟化+副品牌矩阵化"双轨并行。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I03</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">组织治理经历密集修复，战略资源全面向多品牌扩张倾斜</div>
+            <div class="judgment-desc">2026年1月张勇亲自兼任CEO，执行董事宋青、高洁辞任；2026年4月杨利娟辞任特海国际CEO，重返海底捞专职统筹红石榴计划；张勇宣布未来12个月以个人资金增持不少于1亿港元。叠加2025年4月员工权益保障专项小组成立，显示集团正通过组织变革将战略资源全面向多品牌扩张倾斜。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I04</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">三层价格带矩阵成型，饮料角色随价格带分化向标准化/低复杂度迁移</div>
+            <div class="judgment-desc">主品牌客单价稳定在97.7元（堂食体验增强型伴餐），子品牌（小嗨爱炸等）46-69元（低摩擦搭售组件），大排档火锅按碟计价（可复制的加盟门店盈利补充项）。原材料成本率升至40.5%，"5元畅饮"方案已在子品牌中出现，饮料正从"体验配套"向"标准化+低成本+高复制性"方向迁移。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I05</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">友商减法战略修复效率，中高端模式承压形成竞争压力</div>
+            <div class="judgment-desc">呷哺呷哺品牌人均消费从54.8元下调至51.5元，一线城市翻座率升至3.2倍，2025年净亏损收窄25.6%至2.96亿元；凑凑火锅收入同比下滑30.8%至13.49亿元，翻台率仅1.6倍，全年关闭53间。呷哺集团同时布局29.82元起的呷哺牧场自选小火锅，2026年计划新增餐厅不少于100间，对海底捞下沉渗透形成直接价格压力。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I06</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">行业健康化趋势与"餐+饮"模式成为饮品结构调整底层驱动力</div>
+            <div class="judgment-desc">佐餐饮品消费动机正从"解腻/解辣"向"健康/轻负担"升级，低糖及天然成分功能性饮品成为趋势方向。近4,000亿佐餐饮品市场中，火锅店现制饮品毛利率最高可达75%。餐饮行业整体人均消费从2023年46元降至2025年33元，"量涨价跌"已成定局，多频次多时段饮料策略空间打开。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I07</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">重手工现制饮品模式存在规模化瓶颈，标准化RTD方案具备渠道渗透可行性</div>
+            <div class="judgment-desc">凑凑"火锅+茶憩"重度手工现摇模式在大规模复制中面临高峰期出餐瓶颈、短保供应链压力，茶米茶独立门店脱离火锅场景后表现下滑。相反，大窑汽水"高毛利+终端激励"模式已覆盖50万家餐饮店，证明标准化RTD渠道渗透的可行性。饮料方案在海底捞多品牌体系中将更倾向于工业化、低人效损耗的方向。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I08</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">外卖与新渠道爆发式增长，构建双渠道消费格局</div>
+            <div class="judgment-desc">2025财年外卖业务收入暴增111.9%至26.58亿元，远超整体营收增速。同时海底捞自研精酿啤酒在门店内瓶啤占比约7成，首家72平米店中店糖水铺在上海落地，渠道和品类创新呈现多线并进态势，多频次多时段饮料策略空间打开。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 3. 关键变化摘要 ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title">关键变化摘要</h2>
+      </div>
+      <div class="change-list">
+        <div class="change-item">
+          <div class="change-icon">A</div>
+          <div class="change-content">
+            <div class="change-title">张勇重返CEO + 杨利娟回归统筹红石榴计划 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">2026年1-4月，海底捞发生密集顶层人事调整：张勇重新兼任CEO（苟轶群辞任），执行董事宋青、高洁等同步辞任，由具备区域实战、供应链及产品核心职能背景的新董事接棒；杨利娟辞任特海国际CEO重返海底捞专职统筹红石榴计划落地；张勇个人增持不少于1亿港元。</div>
+            <div class="change-implication">这意味着：红石榴计划已从"探索性副线"提升为集团战略核心，决策资源和组织效率全面向多品牌扩张倾斜。饮品采购决策权可能从"主品牌采购团队"转向"集团多品牌统筹团队"。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">B</div>
+          <div class="change-content">
+            <div class="change-title">红石榴计划从试错期进入全面加速期 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">品牌数从2025年6月的14个增至年底的20个，门店从126家增至207家；2025上半年红石榴品牌收入同比暴增227%至5.965亿元，全年营收15.21亿元（同比+214.6%）；大排档火锅确立未来3年500家店目标，2026年1月后在沪汉青等城市商圈快速落地。高管周兆呈2025年3月曾公开坦言多品牌探索"交了不少学费"。</div>
+            <div class="change-implication">这意味着：多品牌矩阵已从"概念验证"进入"规模复制"阶段，"交学费→加码"的路径表明集团对多品牌战略的信心在增强。不同业态对饮料需求的显著差异，要求按业态定制饮料模块而非统一方案。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">C</div>
+          <div class="change-content">
+            <div class="change-title">主品牌自营收缩、加盟放量，轻资产转型进入实质阶段 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">2025年自营店净减少51家，加盟店净增66家（其中45家由自营转加盟），加盟店总数从13家增至79家。同期蜀海供应链完成冷链仓配重组覆盖三四线市场，提前赎回2.85亿美元债降低财务杠杆。</div>
+            <div class="change-implication">这意味着：主品牌正在从"重资产直营"向"轻资产加盟"模式切换，加盟商需要低操作复杂度、易培训、总部可控的标准化方案来保障单店盈利模型。蜀海供应链下沉也为饮品配送提供了基础设施。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">D</div>
+          <div class="change-content">
+            <div class="change-title">原材料成本率攀升与价格带下探形成双重利润挤压 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">原材料及易耗品成本率从37.9%攀升至40.5%，行业火锅品类人均消费持续走低，主品牌客单价虽稳定在97.7元但面临全行业价格下探压力。子品牌已出现"5元畅饮"方案（可乐、雪碧、柠檬茶等），大排档火锅主打按碟计价的极致性价比模型。</div>
+            <div class="change-implication">这意味着：在利润导向KPI框架下，门店层级对饮品方案的操作复杂性与人力占用成本敏感度显著提高。饮品方案必须同时满足"成本可控+操作极简+毛利贡献"三重约束。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">E</div>
+          <div class="change-content">
+            <div class="change-title">友商呷哺通过"减法战略"修复效率，凑凑高端模式承压 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">呷哺呷哺品牌人均消费从54.8元下调至51.5元，一线城市翻座率升至3.2倍，2025年净亏损收窄25.6%至2.96亿元；凑凑火锅收入同比下滑30.8%至13.49亿元，全年仅新开3间、关闭53间。呷哺集团同时布局29.82元起的呷哺牧场自选小火锅和外送卫星店，2026年计划新增餐厅不少于100间。</div>
+            <div class="change-implication">这意味着：大众性价比赛道的竞争正在加剧，呷哺的效率修复对海底捞的下沉渗透形成直接价格压力。凑凑的中高端困境也提示海底捞主品牌中高端定位在当前消费理性化周期下面临结构性压力。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 4. 趋势预判（含五要素） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title">趋势预判（未来3-6个月）</h2>
+      </div>
+      <div class="trend-grid">
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T01</span>加盟门店净增或超100家，下沉市场布局提速</div>
+            <span class="tag tag-high">高</span>
+          </div>
+          <div class="reasoning-card-body">2025年加盟门店从13家增至79家（净增66家），叠加蜀海供应链已完成三四线冷链仓配覆盖、2.85亿美元债提前赎回降低财务杠杆，以及行业层面低线市场餐饮连锁化率提升趋势（商务部蓝皮书），加盟扩张在下半年具备加速条件。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I02 + I03</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">CAR_E03, E22, E23, 蜀海冷链重组, 2.85亿美元债赎回</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">加盟商单店盈利模型跑通；组织资源继续向加盟与新品牌倾斜</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">加盟商大面积亏损/退盟；加盟店翻台率与自营店差距显著</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">加盟店翻台率、加盟商续约率、加盟店与自营店同店销售对比</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T02</span>红石榴大排档火锅500家目标面临单店模型验证压力</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">大排档火锅主打"市集自选、手推车选菜、按碟计价"的极致性价比模型，2026年初快速在上海、武汉、青岛等商圈落地。但按碟计价模式对成本控制要求极高，原材料成本率已升至40.5%，且消费者追求性价比但同时对食材新鲜度敏感（41.7%居首），品质与价格的平衡将决定该模型的可持续性。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E13/E27, E23, E08, CAR_E04</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">大排档单店翻台率和客单价达到预期；极致性价比模型可持续</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">大排档单店翻台率显著低于预期；"5元畅饮"方案因盈利性不足被调整</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">大排档新店翻台率、客单价、2026年Q2-Q4新开数量是否达预期</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T03</span>中高端火锅社交体验模式在当前周期下持续承压</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">凑凑火锅2025年收入下滑30.8%、翻台率仅1.6倍，显示中高端火锅模式承压明显。餐饮行业整体人均消费从2023年46元降至2025年33元，"量涨价跌"已成定局。海底捞主品牌97.7元客单价虽保持稳定，但在行业价格带持续下探的趋势下面临渐进式压力。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I01 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">凑凑收入-30.8%/翻台1.6/关53间, IND_BLUEBOOK_2026人均46→33元, CAR_E16同店-6.7%</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">消费理性化周期持续；中高端赛道无整体复苏</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">消费信心回暖；凑凑"轻量化高坪效店型+双点自助模式"见效</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">主品牌客单价是否跌破90元、中高端赛道整体复苏信号、凑凑修复路径效果</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T04</span>饮料角色向"标准化+低复杂度+高复制性"加速迁移</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">三层价格带已成型，原材料成本率攀升至40.5%，"5元畅饮"先例已出现。凑凑"火锅+茶憩"重度手工现摇模式在大规模复制中的瓶颈（高峰期出餐瓶颈、短保供应链压力、茶米茶独立门店表现下滑）已形成警示。饮料方案在海底捞多品牌体系中将更倾向于工业化、低人效损耗的方向。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I04 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E08, CAR_E04, COMP_FS_2025_E19, COMP_FS_2025_E20, IND_REPORT_2026_E04</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">利润导向KPI持续；多品牌扩张对标准化复制需求增强</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">糖水铺模式成功且未出现人效蚕食；总部出台统一饮料品类管理规范改变分化趋势</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">"5元畅饮"品牌覆盖范围、糖水铺模式复制效果、统一饮料管理规范出台</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card full">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T05</span>健康化趋势将成为饮品结构调整的底层驱动力</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">佐餐饮品消费动机正从"解腻/解辣"向"健康/轻负担"升级，低糖及天然成分功能性饮品成为趋势方向。近4,000亿佐餐饮品市场中，火锅店现制饮品毛利率最高可达75%。同时，中式正餐场景中乳制品渗透率仅26%，火锅场景消费者对功能性饮品需求强烈，健康属性饮品在火锅场景中存在结构性渗透空间。但消费者在火锅场景中的健康诉求优先顺序（科学解辣 vs 护胃 vs 低糖）尚未清晰分层。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I06 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">IND_REPORT_2026_I01, IND_REPORT_2026_E02, IND_REPORT_2026_E03, 乳制品渗透率26%</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">健康化在火锅场景优先级提升；消费者为健康饮品支付溢价意愿存在</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">火锅场景"解腻/解辣"仍为基本盘；经济下行压力加大消费者优先关注价格</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">火锅场景健康诉求优先级分层、低糖/无糖饮品在火锅场景渗透率、消费者支付溢价意愿</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 5. 机会评估（含五要素） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <h2 class="section-title">机会评估</h2>
+      </div>
+      <div class="opp-grid">
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O01</span>机会窗口</span>
+            <span class="tag tag-high">高概率</span>
+          </div>
+          <div class="opp-card-body">加盟体系快速扩张（79家→持续增长）创造了大量标准化饮品方案需求。加盟商需要低操作复杂度、易培训、总部可控的饮料方案（3-5个核心单品），以保障单店盈利模型。蜀海供应链已完成三四线冷链覆盖，为标准化饮品配送提供基础设施。主品牌正从"重资产直营"向"轻资产加盟"模式切换，加盟门店是饮料标准化方案的天然适配场景。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>加盟门店是饮料标准化方案的天然适配场景——操作复杂度低、复制性强、供应链可控。若能在加盟体系定型前进入，可能建立品类合作标准。<br>
+            <strong>关键前提：</strong>加盟商单店盈利模型是否跑通；蜀海供应链是否开放第三方饮料供应商接入；加盟店饮料采购权归总部还是加盟商自主。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">CAR_E03, E22, E08, 蜀海冷链重组, 2.85亿美元债赎回</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">加盟化扩张继续推进；蜀海供应链开放第三方接入；加盟店采购权归总部</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">加盟商单店盈利模型未跑通；蜀海不开放第三方接入；加盟店自主采购</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">加盟店翻台率、蜀海供应商接入政策、加盟店饮料采购权归属</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O02</span>机会窗口</span>
+            <span class="tag tag-high">高概率</span>
+          </div>
+          <div class="opp-card-body">红石榴计划20个品牌覆盖烤肉、炸物、川菜、快餐、大排档等多元业态，各业态对饮料需求差异显著——炸物配碳酸/茶饮、川菜配解辣饮品、大排档配高性价比畅饮方案。集团尚未形成统一的跨品牌饮品架构，当前各品牌可能独立采购。杨利娟回归统筹红石榴计划后，若设立统一采购决策机制，饮品方案可一次接入、多品牌覆盖。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>多品牌差异化需求天然适合"模块化饮料方案"，按业态提供不同的饮料解决方案包。若能成为集团级饮品合作伙伴，可实现"一次接入、多品牌覆盖"的规模化效应。<br>
+            <strong>关键前提：</strong>杨利娟回归后是否设立独立供应链/采购团队；集团是否出台统一的饮料品类战略；各品牌饮料采购决策权归属。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I03 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E05/E07, E23, E13/E27, E25, E02</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">杨利娟设立统一采购机制；集团出台统一饮料品类战略；多品牌扩张继续推进</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">各品牌独立采购维持；集团不出台统一饮料战略；多品牌扩张节奏放缓</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">红石榴是否设立独立采购团队、统一饮料品类战略出台、各品牌采购权限调整</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O03</span>机会窗口</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">佐餐饮品健康化趋势正在成型：消费动机从"解腻/解辣"向"健康/轻负担"升级，火锅场景中消费者对功能性饮品需求强烈，但当前火锅品牌饮品推新节奏慢于茶饮行业（2025年茶饮新品249款）。健康属性饮品在火锅场景存在结构性空白。同时火锅店现制饮品毛利率最高可达75%，凑凑大红袍奶茶年销超200万杯验证了"餐+饮"盈利可行性。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>健康化趋势下，低糖、无糖、功能性饮品在火锅场景中的替代空间正在扩大。火锅品牌供应链冗长导致饮品推新滞后，标准化外部饮品方案可能具备弥补推新效率短板的价值。<br>
+            <strong>关键前提：</strong>火锅场景中"健康"诉求的优先级是否高于"解腻/解辣"；海底捞是否自建饮品研发能力；消费者在火锅场景中为健康饮品支付溢价的意愿。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I06 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">IND_REPORT_2026_I01, IND_REPORT_2026_E02, IND_REPORT_2026_E03, 乳制品渗透率26%, 茶饮新品249款</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">健康化在火锅场景优先级提升；海底捞不自建饮品研发；消费者有支付溢价意愿</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">火锅场景"解腻/解辣"仍为基本盘；海底捞自建饮品研发能力；消费者无溢价支付意愿</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">火锅场景健康诉求优先级分层、低糖/无糖饮品渗透率、海底捞自建研发动向</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O04</span>机会窗口</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">外卖业务收入暴增111.9%至26.58亿元，构建双渠道消费格局。餐饮行业"量涨价跌"趋势下，多频次多时段饮料策略空间打开。海底捞自研精酿啤酒在门店内瓶啤占比约7成，首家72平米店中店糖水铺在上海落地，渠道和品类创新呈现多线并进态势。多频次多时段消费场景（外卖+堂食+下午茶+夜间）为饮料品类提供了差异化渗透空间。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>多渠道多时段消费格局为饮料品类提供了差异化渗透空间。外卖场景适配标准化包装饮品，堂食场景适配体验增强型饮品，多频次多时段策略可提升单客饮料消费频次。<br>
+            <strong>关键前提：</strong>外卖渠道持续高增长；多时段经营纳入战略；糖水铺等新业态模式验证成功。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I06 + I08</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">外卖+111.9%/26.58亿, IND_BLUEBOOK_2026量涨价跌, 精酿啤酒占比7成, 糖水铺落地</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">外卖渠道持续高增长；多时段经营纳入战略；新业态模式验证成功</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">外卖增速回落；多时段经营未纳入战略；糖水铺等新业态模式验证失败</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">外卖收入增速、糖水铺复制效果、多时段经营策略出台</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card risk">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-risk);"><span class="id-tag">R01</span>风险约束</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">原材料成本率升至40.5%，"5元畅饮"方案已在子品牌出现，行业火锅品类人均消费持续走低。在利润导向KPI框架下，门店对饮品成本高度敏感。若价格带持续下探至90元以下，可能触发全面饮品结构调整，毛利空间将进一步压缩。45%成本率可能是关键阈值——突破后可能触发全面涨价或极致价格带策略收缩。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>价格带下探意味着饮品方案必须在"成本可控"与"体验升级"之间找到平衡点，单纯依赖品牌溢价的产品策略可能受到门店端抵触。<br>
+            <strong>关键前提：</strong>原材料成本率是否突破45%触发全面涨价；"5元畅饮"是否推广至更多品牌；客单价是否跌破90元。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I01 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">CAR_E04成本率37.9%→40.5%, E08"5元畅饮", IND_BLUEBOOK_2026人均46→33元</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">原材料成本率继续上升；价格带持续下探；利润导向KPI持续</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">成本率回落；"5元畅饮"被叫停或提价；客单价稳定在90元以上</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">2026财年原材料成本率、"5元畅饮"品牌覆盖范围、客单价变化</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card risk">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-risk);"><span class="id-tag">R02</span>风险约束</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">凑凑"火锅+茶憩"重度手工现摇模式在大规模复制中面临高峰期出餐瓶颈、短保供应链压力，茶米茶独立门店脱离火锅场景后表现下滑。若海底捞在多品牌体系中过度推行手工现制饮品模式，可能面临人效蚕食和规模化瓶颈，反而挤压标准化外部饮品方案的渗透空间。同时，若总部出台统一饮料品类管理规范，可能改变当前饮料角色分化的趋势。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>重手工现制模式的规模化瓶颈既是风险也是机会——若海底捞从凑凑案例中吸取教训，标准化外部方案的价值上升；若海底捞坚持自建手工现制能力，外部合作空间受限。<br>
+            <strong>关键前提：</strong>海底捞是否从凑凑案例吸取教训；是否坚持自建手工现制能力；总部是否出台统一饮料管理规范。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I04 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">COMP_FS_2025_E19, COMP_FS_2025_E20, IND_REPORT_2026_E03, CAR_I02b</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">海底捞坚持自建手工现制能力；总部出台统一饮料管理规范</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">海底捞从凑凑案例吸取教训转向标准化；糖水铺模式成功且未出现人效蚕食</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">糖水铺模式复制效果、统一饮料管理规范出台、自建饮品研发动向</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========== 6. 关键待验证点（绑定高阶判断） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <h2 class="section-title">关键待验证点</h2>
+      </div>
+      <div class="verify-list">
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V01</span>加盟商单店盈利模型是否已经跑通？</div>
+            <div class="verify-binding">关联判断：T01 / O01</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">这是判断加盟扩张可持续性的核心前提。若加盟店翻台率与自营店差距显著或出现大面积退盟，将影响标准化饮品方案在加盟体系中的推广基础。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">加盟店翻台率数据、加盟商续约率、加盟店与自营店同店销售对比</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T01概率上升，O01概率上升（标准化方案需求增强）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T01概率下降，O01概率下降，加盟扩张节奏可能放缓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V02</span>杨利娟回归后，红石榴计划是否设立统一的饮品采购决策机制？</div>
+            <div class="verify-binding">关联判断：T02 / O02</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">决定KO是面对"一个集团级决策人"还是"20个品牌各自独立决策"，直接影响合作模式与资源投入。若设立统一集采，饮品方案可一次接入、多品牌覆盖。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">红石榴是否设立独立供应链/采购团队、统一饮料品类战略出台、各品牌采购权限调整</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">O02概率上升（一次接入多品牌覆盖的规模化效应打开）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">O02概率下降，需按品牌逐一突破，资源投入分散</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V03</span>大排档火锅的单店模型数据（翻台率、客单价、成本结构）如何？</div>
+            <div class="verify-binding">关联判断：T02 / O02</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">大排档火锅承载着"3年500家店"的激进目标，其按碟计价模式对成本控制要求极高。若单店模型跑不通，将直接影响该业态饮品方案的规模和定位。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">大排档新店翻台率、客单价、"5元畅饮"方案盈利表现、2026年Q2-Q4新开数量</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T02概率上升，O02概率上升（大排档业态饮品方案规模扩大）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T02概率下降（500家目标可能下调），O02概率下降</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V04</span>"5元畅饮"方案是否会被推广至更多红石榴品牌？</div>
+            <div class="verify-binding">关联判断：T04 / R01</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">若"5元畅饮"成为红石榴旗下品牌的标配方案，将形成标准饮料的价格锚点，对高毛利饮品方案构成直接替代风险。反之，若该方案因盈利性不足被叫停或提价，说明低价饮品策略存在天花板。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">"5元畅饮"品牌覆盖范围变化、调价行为、消费者接受度和搭售率</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">R01概率上升（毛利空间压缩风险加剧），T04概率上升（标准化加速）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">R01概率下降（风险缓解），T04概率下降（低价策略存在天花板）</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V05</span>原材料成本率是否继续上升？若突破45%是否会触发饮品结构全面调价？</div>
+            <div class="verify-binding">关联判断：R01 / T03</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">原材料成本率已从37.9%升至40.5%，若继续上升将压缩所有品类毛利空间。45%可能是一个关键阈值——突破后可能触发全面涨价或极致价格带策略收缩，改变饮品方案的成本弹性空间。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">2026财年原材料成本率数据、菜单/饮品结构调价公告、子品牌价格带调整</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">R01概率上升（毛利空间压缩风险加剧），T03概率上升（中高端承压加剧）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">R01概率下降（成本压力缓解），T03概率下降</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V06</span>火锅场景中健康化诉求的优先级是否高于"解腻/解辣"？</div>
+            <div class="verify-binding">关联判断：T05 / O03</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">健康化趋势在火锅场景中的优先级直接决定低糖/无糖/功能性饮品的渗透空间。若"解腻/解辣"仍为基本盘，健康化饮品的市场空间有限；若健康化优先级上升，结构性空白将被填补。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">火锅场景健康诉求优先级分层、低糖/无糖饮品在火锅场景渗透率、消费者支付溢价意愿</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T05概率上升，O03概率上升（健康化饮品结构性空白被填补）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T05概率下降，O03概率下降（健康化饮品在火锅场景空间有限）</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========== 7. 推理链与证据依据（重构为三段式） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <h2 class="section-title">推理链与证据依据</h2>
+      </div>
+
+      <!-- A. 证据簇 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第1层</span>证据簇 / 事实模式</div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-A</span>核心经营指标全面承压</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">CAR_E01</span>2025财年营收432.25亿，+1.1%
+            <span class="evid-id">CAR_E01b</span>净利润40.42亿，-14%
+            <span class="evid-id">CAR_E04</span>原材料成本率37.9%→40.5%
+            <span class="evid-id">CAR_E16</span>翻台率4.1→3.9，同店销售-6.7%
+            <span class="evid-id">CAR_I01</span>核心单店高溢价红利期进入尾声
+          </div>
+          <div class="cluster-card-pattern">核心单店模型利润承压，高溢价红利期进入尾声，利润结构正在转型</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-B</span>加盟转型与红石榴计划加速</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">CAR_E03</span>加盟店13→79家，含45家自营转加盟
+            <span class="evid-id">E22</span>2025年自营净减51家、加盟净增66家
+            <span class="evid-id">E05/E07</span>14个品牌、126家门店
+            <span class="evid-id">E23</span>20个品牌、207家门店、营收+214.6%
+            <span class="evid-id">E02</span>周兆呈坦言"交了不少学费"
+            <span class="evid-id">I02</span>红石榴从试验走向第二增长曲线
+          </div>
+          <div class="cluster-card-pattern">集团增长引擎转向加盟化+多品牌，红石榴计划从试错期进入全面加速期</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-C</span>组织变革与战略重置</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">E15</span>2026.1张勇兼任CEO，董事辞任
+            <span class="evid-id">E25</span>杨利娟4月回归统筹红石榴
+            <span class="evid-id">E24</span>张勇增持≥1亿港元
+            <span class="evid-id">E03</span>退还员工垫付赔偿款、成立权益保障小组
+            <span class="evid-id">I03</span>组织治理修复与战略重心调整
+          </div>
+          <div class="cluster-card-pattern">组织治理密集修复，战略资源全面向多品牌扩张倾斜，决策链可能变化</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-D</span>价格带分层与饮料角色迁移</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">E21</span>主品牌客单价97.7元
+            <span class="evid-id">E06</span>小嗨爱炸46-69元
+            <span class="evid-id">E08</span>"5元畅饮"方案
+            <span class="evid-id">E13/E27</span>大排档按碟计价、多城落地
+            <span class="evid-id">I04</span>饮料角色向标准化/低复杂度迁移
+            <span class="evid-id">CAR_I02b</span>门店对操作复杂度敏感
+          </div>
+          <div class="cluster-card-pattern">三层价格带矩阵成型，饮料角色随价格带分化向标准化+低成本+高复制性迁移</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-E</span>友商竞争格局</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">E01-E03</span>呷哺累亏>15亿，2025营收-20.3%，亏损收窄25.6%
+            <span class="evid-id">E04/E05</span>呷哺客单54.8→51.5，一线翻座率3.2
+            <span class="evid-id">E06/E13/E14</span>凑凑收入-30.8%，翻台1.6，关53间
+            <span class="evid-id">I01</span>呷哺减法战略修复单店模型
+            <span class="evid-id">I01b</span>凑凑中高端模式承压
+            <span class="evid-id">I02</span>火锅+茶憩手工模式复制瓶颈
+          </div>
+          <div class="cluster-card-pattern">友商减法战略修复效率加剧大众赛道竞争，中高端模式承压形成防守压力</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-F</span>行业趋势与消费变迁</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">IND_REPORT_2026_I01</span>消费动机向健康/轻负担升级
+            <span class="evid-id">IND_REPORT_2026_I02</span>"餐+饮"模式跃升核心盈利引擎
+            <span class="evid-id">IND_REPORT_2026_E02</span>佐餐饮品市场近4000亿，火锅饮品毛利率最高75%
+            <span class="evid-id">IND_REPORT_2025_I01</span>小火锅400亿市场、20-60元价格带
+            <span class="evid-id">IND_COSTSAVE_2026_I01</span>人均消费下滑+精细化降本转型
+            <span class="evid-id">IND_BLUEBOOK_2026_I01</span>量涨价跌+即时商业爆发
+          </div>
+          <div class="cluster-card-pattern">价格体系不可逆重置+健康化趋势+"餐+饮"模式盈利验证，多频次多时段饮料策略空间打开</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-G</span>饮品模式验证与瓶颈</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">IND_REPORT_2026_E03</span>凑凑大红袍奶茶年销>200万杯，手摇奶茶贡献20%营收
+            <span class="evid-id">COMP_FS_2025_E15</span>茶米茶饮品销售占比18-22%，毛利率70-85%
+            <span class="evid-id">COMP_FS_2025_E19</span>茶米茶重度手工现摇模式瓶颈
+            <span class="evid-id">COMP_FS_2025_E20</span>茶米茶独立门店脱离火锅场景后下滑
+            <span class="evid-id">IND_REPORT_2026_E04</span>大窑汽水"高毛利+终端激励"覆盖50万家餐饮店
+          </div>
+          <div class="cluster-card-pattern">重手工现制模式存在规模化瓶颈，标准化RTD方案具备渠道渗透可行性，饮料方案更倾向于工业化方向</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-H</span>渠道与品类创新多线并进</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">外卖+111.9%</span>外卖业务收入暴增至26.58亿
+            <span class="evid-id">精酿啤酒占比7成</span>自研精酿啤酒门店内瓶啤占比
+            <span class="evid-id">糖水铺落地</span>首家72平米店中店糖水铺上海落地
+            <span class="evid-id">IND_BLUEBOOK_2026</span>量涨价跌+即时商业爆发
+          </div>
+          <div class="cluster-card-pattern">外卖爆发+新业态落地构建双渠道消费格局，多频次多时段饮料策略空间打开</div>
+        </div>
+
+      </div>
+
+      <!-- B. 中间洞察 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第2层</span>中间洞察 / 结构性判断</div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I01</span>核心单店高溢价模式进入结构性放缓阶段</div>
+          <div class="insight-card-mini-statement">营收+1.1%、净利润-14%、翻台率4.1→3.9、同店销售-6.7%、成本率37.9%→40.5%，核心经营指标全面承压。集团利润结构正从"单店溢价"转向"供应链优化+加盟商分成+新品牌规模化"的多元结构。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-A</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I02</span>增长逻辑从单品牌内生增长转向加盟化与多品牌双轮驱动</div>
+          <div class="insight-card-mini-statement">加盟店13→79家（含45家自营转加盟），自营净减51家；红石榴计划品牌数达20个、门店207家，营收+214.6%。"交学费→加码"路径表明集团对多品牌战略信心增强。集团正从"单一主品牌直营"向"主品牌加盟化+副品牌矩阵化"双轨并行。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-B + EC-C</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I03</span>组织治理密集修复，战略资源全面向多品牌扩张倾斜</div>
+          <div class="insight-card-mini-statement">张勇重返CEO、杨利娟回归统筹红石榴、张勇增持≥1亿港元、员工权益保障小组成立。红石榴计划已从"探索性副线"提升为集团战略核心，饮品采购决策权可能从"主品牌采购团队"转向"集团多品牌统筹团队"。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-C</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>统一采购机制是否设立尚需验证</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I04</span>价格带分层成型，饮料角色向标准化/低复杂度/高复制性迁移</div>
+          <div class="insight-card-mini-statement">主品牌97.7元、子品牌46-69元、大排档按碟计价三层价格带成型。成本率升至40.5%，"5元畅饮"已出现。饮料正从"体验配套"向"标准化+低成本+高复制性"方向迁移，门店对操作复杂度敏感度显著提高。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-D + EC-A</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I05</span>友商减法战略修复效率，中高端模式承压形成竞争压力</div>
+          <div class="insight-card-mini-statement">呷哺客单54.8→51.5元、一线翻座率3.2、亏损收窄25.6%，减法战略修复单店模型；凑凑收入-30.8%、翻台1.6、关53间，中高端模式承压。呷哺布局29.82元起小火锅对海底捞下沉渗透形成直接价格压力，凑凑困境提示主品牌中高端定位面临结构性压力。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-E</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I06</span>行业健康化趋势与"餐+饮"模式成为饮品结构调整底层驱动力</div>
+          <div class="insight-card-mini-statement">消费动机从"解腻/解辣"向"健康/轻负担"升级，低糖及天然成分功能性饮品成为趋势方向。近4000亿佐餐饮品市场，火锅店现制饮品毛利率最高75%。餐饮行业人均消费46→33元"量涨价跌"，多频次多时段饮料策略空间打开。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-F</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>健康化在火锅场景的优先级尚未清晰分层</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I07</span>重手工现制饮品模式存在规模化瓶颈，标准化RTD方案具备渠道渗透可行性</div>
+          <div class="insight-card-mini-statement">凑凑"火锅+茶憩"重度手工现摇模式面临高峰期出餐瓶颈、短保供应链压力，茶米茶独立门店脱离火锅场景后下滑。相反，大窑汽水"高毛利+终端激励"覆盖50万家餐饮店。饮料方案在海底捞多品牌体系中将更倾向于工业化、低人效损耗方向。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-G + EC-E</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I08</span>外卖与新渠道爆发构建双渠道格局，多频次多时段饮料策略空间打开</div>
+          <div class="insight-card-mini-statement">外卖业务收入暴增111.9%至26.58亿元，自研精酿啤酒瓶啤占比7成，首家糖水铺上海落地。渠道和品类创新多线并进，多频次多时段消费场景（外卖+堂食+下午茶+夜间）为饮料品类提供差异化渗透空间。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-H + EC-F</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>糖水铺等新业态模式验证尚需时间</div>
+        </div>
+
+      </div>
+
+      <!-- C. 机会/风险映射 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第3层</span>机会/风险映射</div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O01</span>加盟体系标准化饮品方案窗口</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">CAR_E03, E22, E08, 蜀海冷链重组, 2.85亿美元债赎回</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">加盟化扩张继续推进；蜀海供应链开放第三方接入；加盟店采购权归总部</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">加盟商单店盈利模型未跑通；蜀海不开放第三方接入；加盟店自主采购</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V01</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O02</span>红石榴多品牌差异化模块化方案</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I03 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E05/E07, E23, E13/E27, E25, E02</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">杨利娟设立统一采购机制；集团出台统一饮料品类战略；多品牌扩张继续推进</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">各品牌独立采购维持；集团不出台统一饮料战略；多品牌扩张节奏放缓</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V02, V03</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O03</span>健康化饮品在火锅场景结构性空白</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I06 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">IND_REPORT_2026_I01, IND_REPORT_2026_E02, IND_REPORT_2026_E03, 乳制品渗透率26%, 茶饮新品249款</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">健康化在火锅场景优先级提升；海底捞不自建饮品研发；消费者有支付溢价意愿</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">火锅场景"解腻/解辣"仍为基本盘；海底捞自建饮品研发能力；消费者无溢价支付意愿</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V06</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O04</span>多频次多时段饮料策略空间</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I06 + I08</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">外卖+111.9%/26.58亿, IND_BLUEBOOK_2026量涨价跌, 精酿啤酒占比7成, 糖水铺落地</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">外卖渠道持续高增长；多时段经营纳入战略；新业态模式验证成功</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">外卖增速回落；多时段经营未纳入战略；糖水铺等新业态模式验证失败</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V03</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card risk">
+          <div class="mapping-card-title"><span class="id-tag">R01</span>价格带下探压缩毛利空间</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I01 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">CAR_E04成本率37.9%→40.5%, E08"5元畅饮", IND_BLUEBOOK_2026人均46→33元</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">原材料成本率继续上升；价格带持续下探；利润导向KPI持续</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">成本率回落；"5元畅饮"被叫停或提价；客单价稳定在90元以上</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V04, V05</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card risk">
+          <div class="mapping-card-title"><span class="id-tag">R02</span>重手工现制模式规模化瓶颈</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I04 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">COMP_FS_2025_E19, COMP_FS_2025_E20, IND_REPORT_2026_E03, CAR_I02b</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">海底捞坚持自建手工现制能力；总部出台统一饮料管理规范</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">海底捞从凑凑案例吸取教训转向标准化；糖水铺模式成功且未出现人效蚕食</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V04</span></div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ========== 页脚 ========== -->
+  <footer class="report-footer">
+    <div class="disclaimer">
+      本报告采用四层推理链结构（证据卡→证据簇/事实模式→中间洞察→趋势/机会/风险/待验证点），所有判断均止于洞察层，不构成行动建议。每条高阶判断均可追溯至上游洞察与底层证据，可更新、可反证。材料涵盖海底捞集团战略分析、月度动态扫描、友商研究及红餐产业研究院行业报告，数据截至2026年5月。
+    </div>
+    <div>红火先知 · 洞察报告（推理链重构版）</div>
+  </footer>
+
+</div>
+</body>
+</html>

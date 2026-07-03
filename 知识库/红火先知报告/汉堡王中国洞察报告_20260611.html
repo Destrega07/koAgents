@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红火先知 | 汉堡王中国洞察报告（优化版）</title>
+<style>
+  :root {
+    --coke-red: #CC0000;
+    --coke-red-dark: #A00000;
+    --coke-red-light: #F5E6E6;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --black-secondary: #333333;
+    --gold: #C4A962;
+    --gold-light: #F5F0E6;
+    --gray-bg: #FAFAFA;
+    --gray-border: #E5E5E5;
+    --gray-text: #666666;
+    --gray-light: #999999;
+    --tag-high: #CC0000;
+    --tag-high-bg: #F5E6E6;
+    --tag-mid: #C4A962;
+    --tag-mid-bg: #F5F0E6;
+    --tag-observe: #666666;
+    --tag-observe-bg: #F0F0F0;
+    --tag-opportunity: #1A7A2E;
+    --tag-opportunity-bg: #E8F5E9;
+    --tag-risk: #CC0000;
+    --tag-risk-bg: #F5E6E6;
+    --tag-id: #2C5F8D;
+    --tag-id-bg: #E6F0F7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--gray-bg);
+    color: var(--black-secondary);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .report-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--white);
+    box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    min-height: 100vh;
+  }
+
+  .report-header {
+    background: linear-gradient(135deg, var(--coke-red) 0%, var(--coke-red-dark) 100%);
+    color: var(--white);
+    padding: 56px 64px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border: 2px solid rgba(255,255,255,0.12); border-radius: 50%;
+  }
+  .header-label { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.75; margin-bottom: 12px; font-weight: 500; }
+  .header-title { font-size: 36px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; }
+  .header-subtitle { font-size: 15px; opacity: 0.8; margin-bottom: 24px; font-weight: 400; }
+  .header-meta { display: flex; gap: 32px; font-size: 13px; opacity: 0.7; flex-wrap: wrap; }
+
+  .summary-section { margin: -24px 48px 0; position: relative; z-index: 2; }
+  .summary-card {
+    background: var(--white); border-left: 4px solid var(--coke-red);
+    padding: 28px 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-radius: 2px;
+  }
+  .summary-label { font-size: 11px; letter-spacing: 2px; color: var(--coke-red); font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+  .summary-text { font-size: 16px; color: var(--black); line-height: 1.8; font-weight: 500; }
+
+  .content-body { padding: 48px 64px 64px; }
+  .section { margin-bottom: 48px; }
+  .section:last-child { margin-bottom: 0; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--coke-red);
+  }
+  .section-number { font-size: 13px; font-weight: 700; color: var(--coke-red); letter-spacing: 1px; white-space: nowrap; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--black); letter-spacing: 1px; }
+
+  /* ===== ID & Tags ===== */
+  .id-tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 1px 8px; border-radius: 3px; letter-spacing: 0.5px;
+    background: var(--tag-id-bg); color: var(--tag-id); margin-right: 6px;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 3px; letter-spacing: 0.5px; margin-right: 6px;
+  }
+  .tag-high { background: var(--tag-high-bg); color: var(--tag-high); }
+  .tag-mid { background: var(--tag-mid-bg); color: var(--tag-mid); }
+  .tag-observe { background: var(--tag-observe-bg); color: var(--tag-observe); }
+  .tag-opp { background: var(--tag-opportunity-bg); color: var(--tag-opportunity); }
+  .tag-risk { background: var(--tag-risk-bg); color: var(--tag-risk); }
+
+  /* ===== Judgment Items ===== */
+  .judgment-list { display: flex; flex-direction: column; gap: 16px; }
+  .judgment-item {
+    display: flex; gap: 16px; padding: 20px 24px;
+    background: var(--gray-bg); border-radius: 4px;
+    border-left: 3px solid var(--coke-red);
+  }
+  .judgment-num { font-size: 14px; font-weight: 700; color: var(--coke-red); min-width: 24px; flex-shrink: 0; }
+  .judgment-body { flex: 1; }
+  .judgment-title { font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+  .judgment-desc { font-size: 14px; color: var(--black-secondary); line-height: 1.7; }
+
+  /* ===== Change Items ===== */
+  .change-list { display: flex; flex-direction: column; gap: 20px; }
+  .change-item {
+    padding: 24px; background: var(--white);
+    border: 1px solid var(--gray-border); border-radius: 4px;
+    display: flex; gap: 20px;
+  }
+  .change-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--coke-red-light); color: var(--coke-red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+  }
+  .change-content { flex: 1; }
+  .change-title { font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .change-detail { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 8px; }
+  .change-implication {
+    font-size: 13px; color: var(--gray-text); font-style: italic;
+    border-left: 2px solid var(--gold); padding-left: 12px; margin-top: 8px;
+  }
+
+  /* ===== Trend / Opportunity / Risk Cards ===== */
+  .trend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .reasoning-card {
+    padding: 24px; border: 1px solid var(--gray-border);
+    border-radius: 4px; background: var(--white);
+    display: flex; flex-direction: column;
+  }
+  .reasoning-card.full { grid-column: 1 / -1; }
+  .reasoning-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+  .reasoning-card-title { font-size: 15px; font-weight: 600; color: var(--black); flex: 1; min-width: 200px; }
+  .reasoning-card-body { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 14px; }
+
+  /* ===== Reasoning Fields (五要素) ===== */
+  .reasoning-fields {
+    border-top: 1px solid var(--gray-border);
+    padding-top: 12px; margin-top: auto;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .field-row {
+    display: flex; gap: 8px; font-size: 12px; line-height: 1.6;
+    align-items: flex-start;
+  }
+  .field-label {
+    color: var(--coke-red); font-weight: 700; min-width: 72px;
+    flex-shrink: 0; font-size: 11px; letter-spacing: 0.5px;
+  }
+  .field-value { color: var(--gray-text); flex: 1; }
+  .field-value strong { color: var(--black-secondary); }
+
+  .opp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .opp-card {
+    padding: 24px; border-radius: 4px;
+    border: 1px solid var(--gray-border); background: var(--white);
+    border-left: 3px solid var(--tag-opportunity);
+    display: flex; flex-direction: column;
+  }
+  .opp-card.risk { border-left-color: var(--tag-risk); }
+  .opp-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+  .opp-card-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .opp-card-body { font-size: 14px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 14px; }
+  .opp-card-meta { font-size: 12px; color: var(--gray-light); line-height: 1.6; border-top: 1px solid var(--gray-border); padding-top: 10px; margin-bottom: 12px; }
+  .opp-card-meta strong { color: var(--coke-red); }
+
+  /* ===== Verification Points ===== */
+  .verify-list { display: flex; flex-direction: column; gap: 16px; }
+  .verify-item {
+    padding: 20px 24px; border: 1px solid var(--gray-border);
+    border-radius: 4px; background: var(--white);
+    display: flex; gap: 16px;
+  }
+  .verify-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 6px; }
+  .verify-content { flex: 1; }
+  .verify-prop { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+  .verify-binding { font-size: 12px; color: var(--tag-id); margin-bottom: 6px; font-family: "SF Mono", Consolas, monospace; }
+  .verify-fields { display: flex; flex-direction: column; gap: 4px; }
+  .verify-fields .field-row { font-size: 12px; }
+
+  /* ===== Reasoning Chain Module ===== */
+  .chain-section { margin-bottom: 32px; }
+  .chain-section-title {
+    font-size: 16px; font-weight: 700; color: var(--black);
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--gray-border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chain-section-title .layer-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 3px;
+    background: var(--coke-red); color: var(--white); font-weight: 600;
+  }
+
+  .cluster-card {
+    padding: 16px 20px; background: var(--gray-bg); border-radius: 4px;
+    margin-bottom: 12px; border-left: 3px solid var(--gray-text);
+  }
+  .cluster-card-title {
+    font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px;
+  }
+  .cluster-card-evidence {
+    font-size: 12px; color: var(--gray-text); line-height: 1.7;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .cluster-card-evidence .evid-id {
+    display: inline-block; background: var(--white); padding: 1px 6px;
+    border-radius: 2px; border: 1px solid var(--gray-border); margin: 1px 2px;
+    font-size: 11px;
+  }
+  .cluster-card-pattern {
+    font-size: 13px; color: var(--coke-red); margin-top: 6px;
+    font-style: italic;
+  }
+  .cluster-card-pattern::before { content: "=> 局部模式："; font-weight: 700; font-style: normal; }
+
+  .insight-card-mini {
+    padding: 16px 20px; background: var(--white);
+    border: 1px solid var(--gray-border); border-left: 3px solid var(--coke-red);
+    border-radius: 4px; margin-bottom: 12px;
+  }
+  .insight-card-mini-title {
+    font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px;
+  }
+  .insight-card-mini-statement {
+    font-size: 13px; color: var(--black-secondary); line-height: 1.7; margin-bottom: 8px;
+  }
+  .insight-card-mini-deps {
+    font-size: 12px; color: var(--gray-text);
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .insight-card-mini-deps .dep-label { color: var(--coke-red); font-weight: 700; }
+
+  .mapping-card {
+    padding: 16px 20px; border-radius: 4px; margin-bottom: 12px;
+    border: 1px solid var(--gray-border);
+  }
+  .mapping-card.opp { border-left: 3px solid var(--tag-opportunity); background: var(--tag-opportunity-bg); }
+  .mapping-card.risk { border-left: 3px solid var(--tag-risk); background: var(--tag-risk-bg); }
+  .mapping-card-title {
+    font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 6px;
+  }
+  .mapping-card-fields {
+    font-size: 12px; color: var(--gray-text); line-height: 1.7;
+  }
+  .mapping-card-fields .field-label { min-width: 60px; }
+
+  .report-footer {
+    border-top: 1px solid var(--gray-border);
+    padding: 24px 64px; display: flex; justify-content: space-between;
+    align-items: center; font-size: 12px; color: var(--gray-light);
+  }
+  .report-footer .disclaimer { font-style: italic; max-width: 70%; }
+
+  @media (max-width: 800px) {
+    .trend-grid, .opp-grid { grid-template-columns: 1fr; }
+    .content-body { padding: 32px 24px; }
+    .report-header { padding: 40px 32px 36px; }
+    .summary-section { margin: -20px 24px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="report-container">
+
+  <!-- ========== 1. 报告标题区 ========== -->
+  <header class="report-header">
+    <div class="header-label">Strategic Insight Report · Reasoning Chain Rebuilt</div>
+    <h1 class="header-title">红火先知 | 汉堡王中国洞察报告（优化版）</h1>
+    <p class="header-subtitle">四层推理链结构：证据卡 → 证据簇/事实模式 → 中间洞察 → 趋势/机会/风险/待验证点</p>
+    <div class="header-meta">
+      <span>生成时间：2026年6月11日</span>
+      <span>推理结构：多证据·多阶·可追溯·可更新</span>
+      <span>报告性质：洞察层输出（非行动建议）</span>
+    </div>
+  </header>
+
+  <!-- ========== 摘要卡片 ========== -->
+  <div class="summary-section">
+    <div class="summary-card">
+      <div class="summary-label">一句话摘要</div>
+      <p class="summary-text">
+        汉堡王中国正处于"RBI收回经营权→CPE源峰合资→4000店下沉扩张"三阶段战略转型窗口期：单店经济模型处于全球价值链底端（AUV仅40万美元），品牌定位从"中高端西式汉堡"转向"极致性价比+本土化"，单店修复出现初步信号（Q3 SSSG +10.5%）。竞品通过"红白区交叉补贴"（白区饮料毛利率85%+）构建系统性壁垒，而汉堡王因缺乏饮料利润平抑机制导致加盟商在价格战中亏损退出——治理过渡期的新管理层急于向RBI证明重整成效，为低CAPEX、高复制效率的标准化饮品方案创造了顶层合作窗口，但CPE投资蜜雪冰城的资本纽带也对标准碳酸饮料构成潜在替代风险。
+      </p>
+    </div>
+  </div>
+
+  <!-- ========== 正文内容 ========== -->
+  <div class="content-body">
+
+    <!-- ========== 2. 当前状态（中间洞察速览） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title">当前状态</h2>
+      </div>
+      <div class="judgment-list">
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I01</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">中国市场与全球表现呈现结构性背离，单店经济模型处于全球价值链底端</div>
+            <div class="judgment-desc">RBI全球系统销售额保持5%+稳健增长与AOI 8%+目标兑现，但汉堡王中国单店AUV仅约40万美元（仅为法国市场的十分之一），2025年上半年关闭约200家门店，近两年净关店100家以上。中国市场的经营约束条件与全球其他市场存在本质差异，单店对饮料的采购预算和溢价承受能力有限。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I02</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">治理结构从外资特许向中资控股平台转变，决策逻辑与供应商评估标准可能重塑</div>
+            <div class="judgment-desc">2025年2月RBI以1.58亿美元终止与TFI合作收回经营权，20天内两次增资共1.5亿美元；2025年11月CPE源峰与RBI合资（CPE持股83%，注入3.5亿美元），目标2035年门店拓展至4000家以上；2026年2月正式完成合资交割并签订20年主特许协议。控股方从TFI变为CPE，决策链条、资源配置逻辑和供应商评估标准可能发生根本性变化。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I03</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">品牌定位从"中高端西式汉堡"系统性转向"极致性价比+本土化"，饮料角色从利润贡献者向价值锚点迁移</div>
+            <div class="judgment-desc">2025年6月宣布品牌"战略重塑"，重点卡位15-30元价格带，推出9.9元限时堂食测试；"1+1仅需12.9元"工作日随心配沿用至今；2026年3月与美团"拼好饭"联合深度共创推出15-20元专属汉堡。在极致性价比框架下，饮料需在套餐中承担感知价值提升角色，而非单纯毛利品。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I04</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">单店模型修复出现初步信号，但加盟商信心重建仍是核心挑战</div>
+            <div class="judgment-desc">2025年7月门店从1474家降至约1300家（关停170多家），但Q3同店销售额同比逆势增长10.5%；2026年2月陈玟瑞主导的供应链体系与优化投资模型门店正式落地，Q4恢复开店单季新开20家。然而，福建君城公司等核心加盟商因亏损退出引发大面积闭店潮，加盟商信心修复仍是最大挑战。</div>
+          </div>
+        </div>
+        <div class="judgment-item">
+          <span class="judgment-num"><span class="id-tag">I05</span></span>
+          <div class="judgment-body">
+            <div class="judgment-title">竞品通过饮料交叉补贴构建系统性竞争壁垒，汉堡王存在结构性利润平抑缺失</div>
+            <div class="judgment-desc">麦当劳"1+1随心选"（14.9元）采用"红区主食+白区高毛利饮料（毛利率85%+）"交叉补贴模式，在价格战中维持加盟商综合利润。汉堡王于2024年下半年跟进"周周9.9元招牌汉堡"，但汉堡主食原材料成本是咖啡和饮料的2至2.5倍，且缺乏饮料交叉补贴机制，导致核心加盟商亏损退出。同时2024年初暂停"豪点王"会员服务，数字化会员体系出现断档。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 3. 关键变化摘要 ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title">关键变化摘要</h2>
+      </div>
+      <div class="change-list">
+        <div class="change-item">
+          <div class="change-icon">A</div>
+          <div class="change-content">
+            <div class="change-title">RBI收回经营权→CPE合资控股，资本结构与决策逻辑根本性转变 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">2025年2月RBI以1.58亿美元终止与TFI十几年合作收回经营权，20天内两次增资1.5亿美元组建以陈玟瑞为核心的本地管理团队；2025年11月CPE源峰与RBI合资，CPE持股83%注入3.5亿美元，目标2035年4000家以上门店；2026年2月正式完成合资交割并签订20年主特许协议。汉堡王中国从"外资特许经营"变为"中资私募控股平台"。</div>
+            <div class="change-implication">这意味着：决策链条、资源配置逻辑和供应商评估标准可能发生根本性变化。CPE作为本土私募基金，投资回报周期预期可能更短、更激进，但3.5亿美元资本注入提升了支付能力和信用状况。CPE投资组合中包含蜜雪冰城，存在供应链协同的潜在可能性。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">B</div>
+          <div class="change-content">
+            <div class="change-title">品牌战略重塑：从"火烤皇堡"高端形象转向15-30元极致性价比 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">2025年6月宣布品牌"战略重塑"（本土化、营销年轻化等四个维度），重点卡位15-30元价格带，推出9.9元限时堂食测试；"1+1仅需12.9元"随心配沿用至今；2026年3月与美团"拼好饭"联合共创15-20元专属汉堡；菜单端持续推出"烤鸡魂"炸鸡堡等本土化新品，携手"恋与制作人"IP推出分享套餐。</div>
+            <div class="change-implication">这意味着：在12.9元/15-20元极致性价比套餐中，饮料需作为套餐感知价值的一部分设计（而非单独定价），角色从"利润贡献者"向"流量组件/价值锚点"迁移。拼好饭渠道的饮料搭配方案需要适配外卖场景的标准化包装和低操作复杂度。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">C</div>
+          <div class="change-content">
+            <div class="change-title">关店瘦身→同店增长→恢复开店，单店修复路径初步显现 <span class="tag tag-mid">中置信</span></div>
+            <div class="change-detail">2025年7月门店从1474家降至约1300家，关停170多家低效门店，但Q3同店销售额同比逆势增长10.5%；2026年2月陈玟瑞主导的供应链体系与优化投资模型门店正式落地，Q4单季新开店20家。窄门餐眼数据显示山东省门店数达74家，低线城市出现扩张迹象。</div>
+            <div class="change-implication">这意味着：单店健康度修复为后续扩张提供了初步条件，但SSSG的持续性仍需验证。在单店模型修复过程中，饮料需适配优化后的投资模型——更低的运营成本、更高的标准化程度，从"配套品类"向"结构性毛利补充项"过渡。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">D</div>
+          <div class="change-content">
+            <div class="change-title">数字化营销与平台共创成为增长新引擎，填补会员体系断档空白 <span class="tag tag-mid">中置信</span></div>
+            <div class="change-detail">2025年9月开展数字化营销尝试，利用小米OTT家庭大屏（裸眼3D大屏开机、电视淘宝一键下单、LBS定向拦截）打通家庭场景即时消费链路；2026年3月与美团"拼好饭"开展联合深度共创，利用平台数据驱动重新定制产品。CPE注入的3.5亿美元中，核心用途之一为数字化及底层运营能力提升。</div>
+            <div class="change-implication">这意味着：在会员体系暂停后，汉堡王正通过外部平台（OTT、拼好饭）重建数字化触达能力。饮料品类可参与平台数据驱动的产品共创，适配OTT家庭场景推出家庭分享装饮品，或作为拼好饭套餐的流量组件设计。</div>
+          </div>
+        </div>
+        <div class="change-item">
+          <div class="change-icon">E</div>
+          <div class="change-content">
+            <div class="change-title">竞品通过"红白区交叉补贴"与全时段经营构建系统性竞争壁垒 <span class="tag tag-high">高置信</span></div>
+            <div class="change-detail">麦当劳"1+1随心选"（14.9元）采用"红区主食+白区高毛利饮料（毛利率85%+）"交叉补贴模式，在价格战中维持加盟商综合利润；将全国约7000家餐厅鲜煮咖啡升级为鲜萃咖啡支持免费续杯；"风味灵感"系列以现有碳酸机为基底仅新增糖浆泵实现低CAPEX饮品创新。麦当劳门店8620+家，约为汉堡王（约1300家）的6倍以上。</div>
+            <div class="change-implication">这意味着：汉堡王在门店规模短期难以追赶的情况下，需要通过单店产出提升（尤其是非正餐时段盘活）弥补规模劣势。高毛利饮料交叉补贴机制可能成为汉堡王重建加盟商盈利信心的关键方向。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 4. 趋势预判（含五要素） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title">趋势预判（未来3-6个月）</h2>
+      </div>
+      <div class="trend-grid">
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T01</span>4000店扩张计划启动但执行节奏面临多重约束</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">CPE注资3.5亿美元、签订20年主特许协议、Q4恢复开店（单季20家）等信号表明扩张正在启动。但汉堡王在华单店AUV仅40万美元，远低于法国（380万美元）和韩国（120万美元），且麦当劳（8620+家）和肯德基（向12000家冲刺）已形成规模碾压。低线城市门店盈利模型是否跑通是扩张速度的核心约束。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I01 + I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E08, E09, E17, BK_DS_E21, BK_DS_E10</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">CPE持续注资、新开店单店模型跑通、低线城市配送覆盖跟上</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">新开店盈利不及预期；CPE调整投资回报预期；扩张节奏显著放缓</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">2026年新开店数量、低线城市门店翻台率、CPE是否追加注资</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T02</span>极致性价比路线持续深化，饮料角色从利润贡献转向价值锚点</div>
+            <span class="tag tag-high">高</span>
+          </div>
+          <div class="reasoning-card-body">12.9元随心配沿用至今、拼好饭15-20元共创、9.9元限时测试等多重信号表明低价策略已成常态而非阶段性促销。餐饮行业整体人均消费从32.88元向27.8元下行，低价单占比预测2028年达60%。在极致性价比框架下，饮料需在套餐中承担感知价值提升角色。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I03 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E09, BK_DS_E14, BK_DS_E28, COMP_BK_E04, IND_REPORT_2026_E03</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">低价策略盈利性可持续；消费者价格敏感度维持高位</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王主动提价或缩减低价套餐；12.9元随心配被取消或提价</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">12.9元随心配是否常驻、套餐综合利润率、拼好饭渠道销售占比</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T03</span>单店模型修复持续但需SSSG连续性验证</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">Q3同店增长10.5%是一个积极信号，但单季数据不足以确认趋势。陈玟瑞主导的供应链重组与优化投资模型门店落地后，2026年SSSG是否持续正增长是关键验证点。若优化模型门店的盈利表现达到或超过老店水平，将为后续扩张提供更强信心。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I04 + I01</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E12, BK_DS_E17, E26, BK_DS_E26</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">供应链重组效果持续释放；优化投资模型门店复制有效</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">SSSG由正转负；新开店盈利不及预期；关店速度持续超过开店速度</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">2026年各季度SSSG、新开店单店盈利对比、净关店趋势</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T04</span>CPE资本纽带可能推动蜜雪冰城供应链介入饮品体系</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">CPE投资组合中包含蜜雪冰城，汉堡王已开始测试自制现制饮品SKU（果味苏打、冷萃咖啡）。从资本纽带推断供应链协同存在合理逻辑，但"可能性"目前仍停留在推测层面。若蜜雪冰城供应链实际介入，标准碳酸饮料的现调机曝光位和品类份额可能受到影响。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I02 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E19, E21, E22, CAR_I08</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">CPE主动推动投资组合协同；汉堡王现制饮品测试结果正面</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">现制饮品测试结果不如预期被搁置；CPE不推动跨被投企业协同</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">现制饮品SKU数量变化、是否全国推广、蜜雪冰城供应链是否接入</span></div>
+          </div>
+        </div>
+
+        <div class="reasoning-card full">
+          <div class="reasoning-card-header">
+            <div class="reasoning-card-title"><span class="id-tag">T05</span>治理过渡期为顶层合作创造窗口，但组织磨合不确定性仍在</div>
+            <span class="tag tag-mid">中</span>
+          </div>
+          <div class="reasoning-card-body">RBI直管→CPE合资的过渡期，"新政伊始"的新管理层急于向RBI全球总部证明直管后的增长逻辑与重整成效。对能够快速见效、提升同店销售且不增加大额资本开支的创新方案可能具有较高合作意愿。但2019-2025年四度换帅、2026年5月张堃接替吕爱军、黄进栓缺位工商变更等信号表明高层磨合仍在进行中，决策链不稳定可能影响长期战略采购协议的执行风险。</div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">上游洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E16, E17, BK_DS_E02, BK_DS_E06, BK_DS_E33, COMP_BK_E11</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">新管理层对外部创新方案保持开放；RBI全球总部对短期业绩有较高要求</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">新管理层选择内部自主研发而非外部合作；RBI对短期业绩要求不高；高层持续动荡</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">6个月内高管变更情况、是否出台供应商管理框架、是否引入新战略合作伙伴</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 5. 机会评估（含五要素） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <h2 class="section-title">机会评估</h2>
+      </div>
+      <div class="opp-grid">
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O01</span>机会窗口</span>
+            <span class="tag tag-high">高概率</span>
+          </div>
+          <div class="opp-card-body">治理过渡期（RBI直管→CPE合资）为外部合作伙伴提供顶层决策介入窗口。新管理层急于向RBI证明重整成效，对能够快速见效、提升同店销售且不增加大额资本开支的饮料创新方案可能具有较高合作意愿。在治理过渡期以"增长方案共创者"身份切入，可能比在稳定期更容易推动顶层决策落地。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>低CAPEX、高复制效率的饮料方案（如模块化风味糖浆+现有碳酸机升级）可能契合新管理层的短期验证需求。CPE 3.5亿美元资本注入提升了支付能力，但需关注CPE投资周期和退出策略对长期合作稳定性的影响。<br>
+            <strong>关键前提：</strong>RBI直管后汉堡王是否引入新的战略合作伙伴；高层是否公开表达对饮料创新的重视；新管理层是否选择内部自主研发而非外部合作。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E16, E17, BK_DS_E02, BK_DS_E04, COMP_BK_E11</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">治理过渡期持续；新管理层对外部方案保持开放；CPE资本注入支持采购</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">高层持续动荡导致决策停滞；新管理层选择内部自主研发；CPE退出策略变更</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">是否引入新战略合作伙伴、高层是否公开表达饮料创新重视、供应商管理框架出台</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O02</span>机会窗口</span>
+            <span class="tag tag-high">高概率</span>
+          </div>
+          <div class="opp-card-body">汉堡王在价格战中缺乏饮料交叉补贴机制，导致加盟商亏损退出。麦当劳"红白区交叉补贴"模式（白区饮料毛利率85%+）已证明高毛利饮料可以平抑主食成本波动、维持套餐综合利润。重建加盟商盈利信心是汉堡王当前最紧迫的经营挑战，饮料交叉补贴机制可能成为快速见效的利润修复工具。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>套餐饮料升级机制与红白区绑定方案可能成为汉堡王新管理层向RBI证明重整成效的可行方向。高毛利饮料方案可能成为安抚加盟商、稳住门店基本盘的结构性工具。<br>
+            <strong>关键前提：</strong>汉堡王是否引入"主食+饮料"红白区套餐机制；套餐综合利润率是否由负转正；加盟商退出趋势是否遏制。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I03 + I04 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">COMP_BK_E04, COMP_BK_E05, COMP_BK_E14, COMP_BK_E22, COMP_BK_E13</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王认可红白区交叉补贴逻辑；加盟商信心修复为当前优先事项</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王通过其他品类（如小食）实现成本平抑；加盟商退出趋势自然停止</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">是否引入红白区套餐机制、套餐综合利润率、加盟商续约率</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O03</span>机会窗口</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">汉堡王数字化会员体系暂停后正通过外部平台（OTT家庭大屏、拼好饭）重建数字化触达能力。借鉴麦当劳"1000万杯免费赠饮"以极低边际成本驱动App下载和会员注册的模式，低物理成本、高感知价值的饮料可能成为汉堡王重建数字私域的流量杠杆。同时，社交化饮品营销（如动漫IP联名）可提升年轻客群触达效率。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>饮料赠饮活动与IP联动方案可能成为汉堡王重建数字私域的可行方向。OTT家庭场景可推出家庭分享装饮品，拼好饭渠道可设计专属饮料搭配方案。CPE数字化资金窗口期是推动饮料品类数字化营销协同的时机。<br>
+            <strong>关键前提：</strong>汉堡王是否重启会员积分与福利机制；是否开展饮料赠饮拉新活动；App/小程序月活是否回升。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I03 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E19, BK_DS_E28, COMP_BK_E10, COMP_BK_E16, COMP_BK_E03</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王重启会员体系；数字化资金用于饮料品类营销协同</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王选择其他品类作为拉新工具；免费赠饮活动留存率低于预期</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">会员体系是否重启、是否开展饮料赠饮、App月活数据</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-opportunity);"><span class="id-tag">O04</span>机会窗口</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">汉堡王单店AUV仅40万美元，远低于海外市场，下午茶等非正餐时段几乎闲置。麦当劳通过鲜萃咖啡升级+免费续杯及"风味灵感"低CAPEX创新（现有碳酸机+糖浆泵）实现全时段经营拓展。汉堡王无法重资产投入专业咖啡子品牌，低CAPEX的模块化饮料升级可能成为盘活非正餐时段、提升单店坪效的可行路径。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>基于现有碳酸设备的模块化升级可能成为兼顾创新与复制效率的可行路径。标准化风味糖浆包+现调机升级+社交化包装的组合可能成为汉堡王快速复制饮品创新的可行方向。<br>
+            <strong>关键前提：</strong>汉堡王非正餐时段营收占比提升为目标；现有碳酸设备支持特调升级。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I01 + I04 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E08, COMP_BK_E09, COMP_BK_E15, COMP_BK_E19, COMP_BK_E20</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王将全时段经营纳入战略；现有设备支持低CAPEX升级</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王选择重资产投入专业咖啡子品牌；下午茶特调接受度低于预期</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">是否推出下午茶专属饮品、非正餐时段营收占比、单店年营业额变化</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card risk">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-risk);"><span class="id-tag">R01</span>风险约束</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">汉堡王已开始测试自制现制饮品SKU（果味苏打、冷萃咖啡），叠加CPE投资蜜雪冰城的资本纽带，标准碳酸饮料的现调机曝光位和品类份额可能面临替代风险。同时汉堡王单店AUV仅40万美元，单店对饮料的采购预算和溢价承受能力有限，在极致性价比框架下可能进一步压缩饮料品类的毛利空间。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>标准碳酸饮料在汉堡王菜单中的流量地位可能受到现制饮品影响，需要关注现调机曝光位变化和品类份额转移趋势。在极致性价比框架下，饮料方案可能需要从"高溢价导向"转向"性价比+灵活性导向"。<br>
+            <strong>关键前提：</strong>现制饮品测试的市场接受度；蜜雪冰城供应链是否实际介入；汉堡王是否大规模推广现制饮品。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I03</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E19, E21, E22, CAR_I08, CAR_I09</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">现制饮品测试结果正面；CPE推动蜜雪冰城供应链接入</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">现制饮品测试被搁置；CPE不推动跨被投企业协同</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">现制饮品SKU数量、全国推广范围、现调机曝光位变化</span></div>
+          </div>
+        </div>
+
+        <div class="opp-card risk">
+          <div class="opp-card-header">
+            <span class="opp-card-type" style="color: var(--tag-risk);"><span class="id-tag">R02</span>风险约束</span>
+            <span class="tag tag-mid">中概率</span>
+          </div>
+          <div class="opp-card-body">2019-2025年汉堡王中国四度换帅，2026年5月张堃接替吕爱军成为董事长，而此前2月宣布出任董事长的黄进栓未出现在工商变更中。高层频繁调整可能导致战略采购协议的执行风险和决策链不确定性。KO需保持与多个层级管理者的关系覆盖，而非依赖单一决策人。</div>
+          <div class="opp-card-meta">
+            <strong>对KO的战略含义：</strong>决策链不稳定意味着长期战略采购协议的执行风险和决策链不确定性。供应商需要关注新权力层级（张堃、范军等）的分工变化，防范管理层频繁更替带来的合同执行及战略摇摆风险。<br>
+            <strong>关键前提：</strong>高层调整是否趋于稳定；新管理层是否出台清晰的供应商管理框架。
+          </div>
+          <div class="reasoning-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I04</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E06, E20, BK_DS_E27, BK_DS_E32, BK_DS_E33</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">高层磨合尚未完成；采购决策链未规范化</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">6个月内无重大高管变更；新管理层出台清晰供应商管理框架</span></div>
+            <div class="field-row"><span class="field-label">监测信号</span><span class="field-value">高管变更频率、张堃战略方向与采购决策风格、CPE供应商管理规范</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========== 6. 关键待验证点（绑定高阶判断） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <h2 class="section-title">关键待验证点</h2>
+      </div>
+      <div class="verify-list">
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V01</span>4000店扩张计划是否获得持续资金支持与执行节奏保障？</div>
+            <div class="verify-binding">关联判断：T01 / O01</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">CPE注资3.5亿美元是启动资金，但4000店目标意味着从当前约1300家基数增长超3倍，需要持续且大规模的资金投入。低线城市门店盈利模型是否跑通是扩张是否可持续的核心约束。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">2026年新开店数量、低线城市门店翻台率、CPE是否追加注资</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T01概率上升，O01概率上升</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T01概率下降，O01概率下降，扩张节奏可能从"激进"调整为"审慎"</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V02</span>极致性价比策略（12.9元随心配/9.9元测试）的盈利性是否可持续？</div>
+            <div class="verify-binding">关联判断：T02 / O02</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">汉堡主食原材料成本是咖啡和饮料的2至2.5倍，缺乏饮料交叉补贴机制，低价策略可能持续吞噬加盟商利润。若12.9元随心配盈利性不足，将影响饮料在套餐中的定价空间和角色定位。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">12.9元随心配是否常驻、套餐综合利润率、加盟商续约率</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T02概率上升，O02概率上升（饮料交叉补贴需求增强）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T02概率下降（低价策略被收缩），O02概率下降</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V03</span>单店模型修复（Q3 SSSG +10.5%）是否可持续？</div>
+            <div class="verify-binding">关联判断：T03 / O01 / O04</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">单季10.5%同店增长是积极信号，但不足以确认趋势。SSSG的持续性直接决定新开店单店盈利模型是否达到或超过老店水平，进而影响加盟商信心和扩张节奏。若SSSG由正转负，所有基于"修复→扩张"逻辑的判断都需要重新评估。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">2026年各季度SSSG、新开店单店盈利对比、净关店趋势</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">T03概率上升，O01/O04概率上升（单店产出提升需求增强）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">T03概率下降，O01/O04概率下降，修复逻辑需要重新评估</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V04</span>高层调整是否趋于稳定？采购决策链是否规范化？</div>
+            <div class="verify-binding">关联判断：R02 / T05 / O01</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">2019-2025年四度换帅，2026年5月张堃接替吕爱军、黄进栓缺位工商变更等信号表明高层磨合仍在进行中。决策链不稳定意味着长期战略采购协议的执行风险和决策链不确定性。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">6个月内是否还有重大高管变更、张堃战略方向与采购决策风格、CPE是否出台供应商管理规范</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">R02概率下降（风险缓解），O01概率上升（决策链稳定利于合作）</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">R02概率上升（风险加剧），O01概率下降（合作窗口收窄）</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verify-item">
+          <div class="verify-dot"></div>
+          <div class="verify-content">
+            <div class="verify-prop"><span class="id-tag">V05</span>现制饮品测试（果味苏打/冷萃咖啡）是否大规模推广？蜜雪冰城供应链是否实际介入？</div>
+            <div class="verify-binding">关联判断：R01 / T04</div>
+            <div class="verify-fields">
+              <div class="field-row"><span class="field-label">为什么关键</span><span class="field-value">若汉堡王大规模推广自制现制饮品替代标准碳酸饮料，将直接冲击标准饮料供应商的现调机曝光位和品类份额。CPE投资蜜雪冰城的资本纽带增加了这一风险的可能性。</span></div>
+              <div class="field-row"><span class="field-label">关注信号</span><span class="field-value">现制饮品SKU数量、是否全国推广、蜜雪冰城供应链是否接入</span></div>
+              <div class="field-row"><span class="field-label">若验证成立</span><span class="field-value">R01概率上升（替代风险加剧），T04概率上升</span></div>
+              <div class="field-row"><span class="field-label">若验证不成立</span><span class="field-value">R01概率下降（风险缓解），T04概率下降</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========== 7. 推理链与证据依据（重构为三段式） ========== -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <h2 class="section-title">推理链与证据依据</h2>
+      </div>
+
+      <!-- A. 证据簇 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第1层</span>证据簇 / 事实模式</div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-A</span>中国市场与全球表现结构性背离</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">E02</span>全球系统销售额5.4%增长
+            <span class="evid-id">E03</span>全球系统销售额5.3%增长
+            <span class="evid-id">E08</span>中国单店AUV约40万美元（法国十分之一）
+            <span class="evid-id">E09</span>2025上半年关闭约200家门店
+            <span class="evid-id">REF_E05</span>汉堡王在华约1300家瓶颈
+          </div>
+          <div class="cluster-card-pattern">中国市场经营约束条件与全球其他市场存在本质差异，单店经济模型处于全球价值链底端</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-B</span>治理结构与资本根本性重组</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">BK_DS_E02</span>RBI 1.58亿美元终止TFI合作
+            <span class="evid-id">BK_DS_E04</span>RBI注资超1亿美元
+            <span class="evid-id">BK_DS_E05</span>20天内两次增资共1.5亿美元
+            <span class="evid-id">E16</span>2026年2月完成TFI向CPE过渡
+            <span class="evid-id">E17</span>CPE 3.5亿美元获取83%股权
+            <span class="evid-id">E19</span>CPE投资组合含蜜雪冰城
+            <span class="evid-id">E20</span>原TFI系高管集体退出
+            <span class="evid-id">BK_DS_E18</span>CPE与RBI合资成立汉堡王中国
+            <span class="evid-id">BK_DS_E24</span>2026年2月完成合资交割
+          </div>
+          <div class="cluster-card-pattern">控股方从外资特许（TFI）变为中资私募（CPE），资本结构、决策逻辑与供应商评估标准可能根本性重塑</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-C</span>品牌战略重塑与价格带下探</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">BK_DS_E08</span>2025年6月宣布品牌"战略重塑"
+            <span class="evid-id">BK_DS_E09</span>卡位15-30元，9.9元限时测试
+            <span class="evid-id">BK_DS_E14</span>12.9元随心配沿用至今
+            <span class="evid-id">BK_DS_E28</span>与美团拼好饭联合共创15-20元汉堡
+            <span class="evid-id">BK_DS_E29</span>拼好饭渠道聚焦15-20元价格带
+            <span class="evid-id">BK_DS_E13</span>上新烤鸡魂炸鸡堡等本土化新品
+          </div>
+          <div class="cluster-card-pattern">品牌定位从"中高端西式汉堡"系统性转向"极致性价比+本土化"，低价策略已成常态而非阶段性促销</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-D</span>单店模型修复与加盟商信心危机</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">BK_DS_E03</span>RBI宣布关闭低效门店（年均<30万美元）
+            <span class="evid-id">BK_DS_E12</span>门店1474→1300家，关停170多家
+            <span class="evid-id">BK_DS_E17</span>Q3 SSSG +10.5%逆势增长
+            <span class="evid-id">BK_DS_E21</span>Q4恢复开店，单季新开20家
+            <span class="evid-id">BK_DS_E26</span>供应链体系与优化投资模型门店落地
+            <span class="evid-id">COMP_BK_E13</span>福建君城等核心加盟商亏损退出
+          </div>
+          <div class="cluster-card-pattern">关店瘦身→同店增长→恢复开店的修复路径初步显现，但加盟商信心重建仍是核心挑战</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-E</span>竞品饮料交叉补贴与全时段经营壁垒</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">COMP_BK_E04</span>麦当劳1+1随心选12→14.9元
+            <span class="evid-id">COMP_BK_E05</span>红区主食+白区饮料搭配
+            <span class="evid-id">COMP_BK_E14</span>白区饮料毛利率85%+
+            <span class="evid-id">COMP_BK_E22</span>汉堡主食成本是饮料2-2.5倍
+            <span class="evid-id">COMP_BK_E15</span>麦当劳鲜萃咖啡升级+免费续杯
+            <span class="evid-id">COMP_BK_E19</span>风味灵感低CAPEX创新
+            <span class="evid-id">COMP_BK_E20</span>低CAPEX模式（碳酸机+糖浆泵）
+          </div>
+          <div class="cluster-card-pattern">竞品通过"红白区交叉补贴"维持价格战中加盟商利润，通过低CAPEX饮料创新实现全时段经营，形成系统性竞争壁垒</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-F</span>数字化断档与平台共创重建</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">COMP_BK_E10</span>汉堡王暂停豪点王会员服务
+            <span class="evid-id">COMP_BK_E16</span>麦当劳1000万杯免费赠饮拉新
+            <span class="evid-id">COMP_BK_E03</span>麦当劳90%+订单数字化处理
+            <span class="evid-id">BK_DS_E19</span>CPE 3.5亿美元用于数字化提升
+            <span class="evid-id">BK_DS_E28</span>拼好饭联合深度共创
+            <span class="evid-id">BK_DS_E31</span>数据驱动以用户需求为中心
+          </div>
+          <div class="cluster-card-pattern">汉堡王数字化会员体系断档后正通过外部平台（OTT、拼好饭）重建触达能力，饮料可作为低成本拉新杠杆</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-G</span>现制饮品测试与CPE资本纽带</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">E21</span>汉堡王测试自制现制饮品SKU
+            <span class="evid-id">E22</span>与Naruto等动漫IP联名
+            <span class="evid-id">E19</span>CPE投资组合含蜜雪冰城
+            <span class="evid-id">CAR_I08</span>CPE资本纽带引入现制饮品可能性
+            <span class="evid-id">CAR_I09</span>标准碳酸饮料流量地位可能受影响
+          </div>
+          <div class="cluster-card-pattern">CPE资本纽带与现制饮品测试构成标准碳酸饮料的潜在替代风险，但尚停留在推测层面</div>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-card-title"><span class="id-tag">EC-H</span>行业趋势与消费变迁</div>
+          <div class="cluster-card-evidence">
+            <span class="evid-id">IND_REPORT_2026_E03</span>低价单占比向60%攀升
+            <span class="evid-id">IND_REPORT_2026_E02</span>人均消费32.88→27.8元下行
+            <span class="evid-id">BRAND_REPORT_2025_E06</span>现制饮品人均降幅19.4%
+            <span class="evid-id">DRINK_2025_E05</span>蔬果茶/气泡茶创新窗口期
+            <span class="evid-id">DRINK_2025_E08</span>果咖/气泡咖成咖啡创新主力
+          </div>
+          <div class="cluster-card-pattern">价格体系不可逆重置+饮品消费降级最显著+水果气泡复合创新窗口期，性价比与价值感双轮驱动</div>
+        </div>
+
+      </div>
+
+      <!-- B. 中间洞察 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第2层</span>中间洞察 / 结构性判断</div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I01</span>汉堡王中国单店经济模型长期处于全球价值链底端</div>
+          <div class="insight-card-mini-statement">中国单店AUV仅40万美元（法国十分之一），2025上半年关闭约200家门店，中国市场经营约束条件与全球其他市场存在本质差异。单店对饮料的采购预算和溢价承受能力有限。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-A</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I02</span>治理结构从外资特许向中资控股平台转变，决策逻辑可能重塑</div>
+          <div class="insight-card-mini-statement">控股方从TFI变为CPE（3.5亿美元/83%股权），决策链条、资源配置逻辑和供应商评估标准可能发生根本性变化。CPE作为本土私募基金，投资回报周期预期可能更短、更激进，但资本注入提升了支付能力。CPE投资组合含蜜雪冰城，存在供应链协同可能性。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-B</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>CPE投资周期和退出策略可能影响长期稳定性</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I03</span>品牌定位系统性转向极致性价比，饮料角色从利润贡献向价值锚点迁移</div>
+          <div class="insight-card-mini-statement">品牌战略重塑+15-30元价格带卡位+12.9元随心配常驻+拼好饭15-20元共创，表明低价策略已成常态。饮料需在套餐中承担感知价值提升角色，而非单纯毛利品。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-C + EC-H</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I04</span>单店修复路径初步显现但加盟商信心重建是核心挑战</div>
+          <div class="insight-card-mini-statement">关店瘦身→同店增长10.5%→恢复开店→供应链重组落地，修复路径初步显现。但福建君城等核心加盟商亏损退出引发闭店潮，加盟商信心修复仍是最大挑战，直接影响扩张可持续性。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-D</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>SSSG单季数据不足以确认趋势，需连续性验证</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I05</span>竞品通过饮料交叉补贴构建系统性壁垒，汉堡王存在结构性利润平抑缺失</div>
+          <div class="insight-card-mini-statement">麦当劳"红白区交叉补贴"（白区饮料毛利率85%+）在价格战中维持加盟商综合利润。汉堡王跟进9.9元价格战但缺乏饮料交叉补贴机制，汉堡主食成本是饮料2-2.5倍，导致加盟商亏损退出。同时数字化会员体系断档。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-E + EC-A</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>高</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I06</span>数字化重建窗口打开，饮料可作为低成本拉新杠杆</div>
+          <div class="insight-card-mini-statement">汉堡王会员体系暂停后正通过外部平台（OTT、拼好饭）重建数字化触达。借鉴麦当劳"1000万杯免费赠饮"模式，低物理成本、高感知价值的饮料可能成为重建数字私域的流量杠杆。CPE数字化资金窗口期支持饮料品类数字化营销协同。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-F</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>汉堡王可能选择其他品类作为拉新工具</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I07</span>CPE资本纽带与现制饮品测试构成标准碳酸饮料的潜在替代风险</div>
+          <div class="insight-card-mini-statement">汉堡王已测试自制现制饮品SKU（果味苏打、冷萃咖啡），叠加CPE投资蜜雪冰城的资本纽带，标准碳酸饮料的现调机曝光位和品类份额可能面临替代风险。但"可能性"目前仍停留在推测层面。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-G + EC-B</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>资本关联不等于业务协同，测试结果可能不如预期</div>
+        </div>
+
+        <div class="insight-card-mini">
+          <div class="insight-card-mini-title"><span class="id-tag">I08</span>治理过渡期创造顶层合作窗口，新管理层急于证明重整成效</div>
+          <div class="insight-card-mini-statement">RBI直管→CPE合资的过渡期，新管理层急于向RBI全球总部证明直管后的增长逻辑与重整成效，对能够快速见效、提升同店销售且不增加大额资本开支的创新方案可能具有较高合作意愿。但高层频繁调整（四度换帅）带来决策链不确定性。</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">依赖证据簇：</span>EC-B + EC-D</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">判断强度：</span>中</div>
+          <div class="insight-card-mini-deps"><span class="dep-label">不确定性：</span>高层磨合尚未定型，决策链不稳定可能影响合作窗口持续性</div>
+        </div>
+
+      </div>
+
+      <!-- C. 机会/风险映射 -->
+      <div class="chain-section">
+        <div class="chain-section-title"><span class="layer-badge">第3层</span>机会/风险映射</div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O01</span>治理过渡期顶层合作窗口</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I08</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E16, E17, BK_DS_E02, BK_DS_E04, COMP_BK_E11</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">治理过渡期持续；新管理层对外部方案保持开放</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">高层持续动荡导致决策停滞；新管理层选择内部自主研发</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V01, V04</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O02</span>红白区交叉补贴模式借鉴空间</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I03 + I04 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">COMP_BK_E04, COMP_BK_E05, COMP_BK_E14, COMP_BK_E22, COMP_BK_E13</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王认可红白区交叉补贴逻辑；加盟商信心修复为当前优先事项</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王通过其他品类实现成本平抑；加盟商退出趋势自然停止</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V02</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O03</span>数字化拉新与社交化营销窗口</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I03 + I06</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E19, BK_DS_E28, COMP_BK_E10, COMP_BK_E16, COMP_BK_E03</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王重启会员体系；数字化资金用于饮料品类营销协同</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王选择其他品类作为拉新工具；免费赠饮活动留存率低于预期</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V04</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card opp">
+          <div class="mapping-card-title"><span class="id-tag">O04</span>低CAPEX模块化饮品创新适配单店修复</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I01 + I04 + I05</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E08, COMP_BK_E09, COMP_BK_E15, COMP_BK_E19, COMP_BK_E20</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">汉堡王将全时段经营纳入战略；现有设备支持低CAPEX升级</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">汉堡王选择重资产投入专业咖啡子品牌；下午茶特调接受度低于预期</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V03</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card risk">
+          <div class="mapping-card-title"><span class="id-tag">R01</span>现制饮品替代标准碳酸饮料风险</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I07</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">E19, E21, E22, CAR_I08, CAR_I09</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">现制饮品测试结果正面；CPE推动蜜雪冰城供应链接入</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">现制饮品测试被搁置；CPE不推动跨被投企业协同</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V05</span></div>
+          </div>
+        </div>
+
+        <div class="mapping-card risk">
+          <div class="mapping-card-title"><span class="id-tag">R02</span>组织磨合不确定性影响长期协议</div>
+          <div class="mapping-card-fields">
+            <div class="field-row"><span class="field-label">依赖洞察</span><span class="field-value">I02 + I08</span></div>
+            <div class="field-row"><span class="field-label">底层证据</span><span class="field-value">BK_DS_E06, E20, BK_DS_E27, BK_DS_E32, BK_DS_E33</span></div>
+            <div class="field-row"><span class="field-label">成立前提</span><span class="field-value">高层磨合尚未完成；采购决策链未规范化</span></div>
+            <div class="field-row"><span class="field-label">反证条件</span><span class="field-value">6个月内无重大高管变更；新管理层出台清晰供应商管理框架</span></div>
+            <div class="field-row"><span class="field-label">待验证</span><span class="field-value">V04</span></div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ========== 页脚 ========== -->
+  <footer class="report-footer">
+    <div class="disclaimer">
+      本报告采用四层推理链结构（证据卡→证据簇/事实模式→中间洞察→趋势/机会/风险/待验证点），所有判断均止于洞察层，不构成行动建议。每条高阶判断均可追溯至上游洞察与底层证据，可更新、可反证。材料涵盖汉堡王全球与中国市场战略扫描、月度动态扫描、友商研究及红餐产业研究院行业报告，数据截至2026年5月。
+    </div>
+    <div>红火先知 · 洞察报告（推理链重构版）</div>
+  </footer>
+
+</div>
+</body>
+</html>

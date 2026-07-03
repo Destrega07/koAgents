@@ -1,0 +1,10 @@
+已按 执行指令10.md 完成修复：现在点击 {围绕需求创造价值主张} 跳转到【价值主张创造】后，会立即出现常驻 Loading 提示，并且前端请求体已严格对齐后端 /api/chat 代理协议；同时在解析层彻底屏蔽 verbose ，只取 assistant + answer ，避免重复报告污染。
+
+已修复点（对齐指令10）
+
+- 网络层协议对齐 ： runValuePropPipeline 改为最外层字段发送 bot_id / user_id / stream: true / message ，并且 message = JSON.stringify(pipeline_context) （不再 prune 掉导致 message 为空的风险）。见： runValuePropPipeline
+- 流式死锁兜底 ：为流式请求增加 25s 超时 Abort，避免前端 reader 长时间挂起无反馈。见同上链接
+- 去重解析 ：重写 extractLikelyValuePropMarkdownFromSseData ，不再做宽泛遍历；仅解析 SSE 的 JSON 行，严格过滤 role==="assistant" && type==="answer" ，并跳过 type==="verbose" 。见： extractLikelyValuePropMarkdownFromSseData
+- 常驻 Loading 状态条 ：只要 state.ui.valuePropLoading.has(cid) 或 report==="生成中…" ，页面就会显示红色动效 loading，并使用指定文案。见： renderValueProp loading
+- 样式与调试区 ： .valueprop-editor 左右 padding 调为 24px，表格 margin 归零；底部 <details> 同时展示“解析清洗后的 Markdown 报告 + rawStream 原始流文本”。见： index.html 、 renderValueProp details
+你现在可以直接按原流程复测：在【需求验证与洞察】勾选需求 → 点 {围绕需求创造价值主张} → 跳到【价值主张创造】应立刻看到 Loading 条；完成后 Coze 日志应出现对 7552194182392512566 的调用记录，并渲染出单份结构化报告。
