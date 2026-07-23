@@ -78,6 +78,19 @@ const STATUS_LEAD = ["待提案", "已提案", "已成交", "被拒绝"];
 const RELATION_COOP = ["基础供货合作", "JBP合作", "战略合作"];
 const RELATION_COLLAB = ["首次接触", "存有戒心", "初步信任", "合作无间", "剑拔弩张", "冷却处理"];
 
+// 腾讯云 COS 静态资源基础 URL（红火哨兵自动抓取舆情周报用）
+const COS_BASE_URL = "https://bucketforkoagents-1393865189.cos.ap-shanghai.myqcloud.com/sentiment";
+
+// KA 客户名称 → COS 二级目录与文件名前缀映射
+const KA_CUSTOMER_CONFIG = {
+  "海底捞": { key: "haidilao", filePrefix: "海底捞" },
+  "汉堡王中国": { key: "burgerking", filePrefix: "汉堡王" },
+  "汉堡王": { key: "burgerking", filePrefix: "汉堡王" },
+  "麦当劳中国": { key: "mcdonald", filePrefix: "麦当劳" },
+  "麦当劳": { key: "mcdonald", filePrefix: "麦当劳" },
+  "呷哺呷哺": { key: "xiabu", filePrefix: "呷哺呷哺湊湊" },
+};
+
 const CUSTOMER_FIELDS_COMMON = [
   { key: "name", label: "客户名称", type: "text" },
   { key: "attribute", label: "客户属性", type: "select", options: ["单体店", "单一城市连锁", "跨城市连锁", "全国连锁"] },
@@ -1448,6 +1461,68 @@ function openKaSentimentViewer(report) {
   };
 }
 
+function openKaActionsViewer(report) {
+  const rep = report && typeof report === "object" ? report : {};
+  const backdrop = document.createElement("div");
+  backdrop.className = "ka-viewer-backdrop";
+
+  const panel = document.createElement("div");
+  panel.className = "ka-viewer";
+
+  const header = document.createElement("div");
+  header.className = "ka-viewer-header";
+
+  const left = document.createElement("div");
+  left.className = "ka-viewer-title";
+  const t = document.createElement("div");
+  t.className = "name";
+  t.textContent = String(rep.title || "洞察报告");
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const ym = String(rep.reportYm || "");
+  const d = String(rep.importAt || "");
+  const importYmd = d ? d.slice(0, 10) : "";
+  meta.textContent = `${ym ? `报告月份：${ym}` : "报告月份：—"} · ${importYmd ? `导入：${importYmd}` : "导入：—"}`;
+  left.appendChild(t);
+  left.appendChild(meta);
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "btn";
+  closeBtn.textContent = "关闭报告";
+
+  header.appendChild(left);
+  header.appendChild(closeBtn);
+
+  const frameWrap = document.createElement("div");
+  frameWrap.className = "ka-viewer-body";
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("sandbox", "allow-scripts");
+  iframe.style.width = "100%";
+  iframe.style.height = "100%";
+  iframe.style.border = "none";
+  iframe.srcdoc = rewriteEchartsToCdn(String(rep.htmlContent || ""));
+  frameWrap.appendChild(iframe);
+
+  panel.appendChild(header);
+  panel.appendChild(frameWrap);
+  backdrop.appendChild(panel);
+  document.body.appendChild(backdrop);
+
+  const cleanup = () => {
+    try {
+      iframe.srcdoc = "";
+    } catch {}
+    try {
+      backdrop.remove();
+    } catch {}
+  };
+  closeBtn.onclick = cleanup;
+  backdrop.onclick = (e) => {
+    if (e.target === backdrop) cleanup();
+  };
+}
+
 function parseListItems(block) {
   const src = String(block || "").replace(/\r\n/g, "\n");
   const lines = src.split("\n");
@@ -1579,6 +1654,36 @@ function todayYMD() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// 根据当前日期倒推近 weeksCount 个周三的 YYYYMMDD 日期戳列表（含当周周三）
+function getRecentWednesdayYmdList(weeksCount = 6) {
+  const list = [];
+  const now = new Date();
+  const day = now.getDay();
+  const diffToWed = day >= 3 ? day - 3 : day + 4;
+  const latestWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToWed);
+  for (let i = 0; i < weeksCount; i++) {
+    const d = new Date(latestWed.getTime() - i * 7 * 24 * 3600 * 1000);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    list.push(`${yyyy}${mm}${dd}`);
+  }
+  return list;
+}
+
+// 根据当前日期倒推近 monthsCount 个月的 YYMM 月份戳列表（含当月）
+function getRecentMonthYmList(monthsCount = 6) {
+  const list = [];
+  const now = new Date();
+  for (let i = 0; i < monthsCount; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const yy = String(d.getFullYear()).slice(-2);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    list.push(`${yy}${mm}`);
+  }
+  return list;
 }
 
 function applyNeedInsightIntervieweesToBasicInfo(basicInfoMarkdown, collaboratorNames) {
@@ -2925,12 +3030,52 @@ function parseRegionValue(v) {
   return out;
 }
 
+async function readCustomerDocTextWithEncodingFallback(file) {
+  const f = file;
+  if (!f) return "";
+  if (typeof TextDecoder === "undefined" || typeof f.arrayBuffer !== "function") return await f.text();
+
+  let buf = null;
+  try {
+    buf = await f.arrayBuffer();
+  } catch {
+    buf = null;
+  }
+  if (!buf) return await f.text();
+
+  const map = buildCustomerHeaderToKeyMap();
+  const decode = (enc) => {
+    try {
+      return new TextDecoder(enc).decode(buf);
+    } catch {
+      return "";
+    }
+  };
+  const score = (text) => {
+    const { headers } = parseCustomerDoc(text, f.name);
+    const hit = headers.map((h) => map.get(normalizeCustomerHeader(h)) || "").filter(Boolean).length;
+    const bad = (String(text).match(/\uFFFD/g) || []).length;
+    return { hit, bad };
+  };
+
+  const tUtf8 = decode("utf-8") || decode("utf8");
+  const sUtf8 = score(tUtf8);
+
+  const tGbk = decode("gb18030") || decode("gbk");
+  const sGbk = score(tGbk);
+
+  if (sGbk.hit > sUtf8.hit) return tGbk || tUtf8;
+  if (sGbk.hit < sUtf8.hit) return tUtf8 || tGbk;
+  if (sGbk.bad < sUtf8.bad) return tGbk || tUtf8;
+  return tUtf8 || tGbk;
+}
+
 async function importCustomersFromDocFile(file) {
   const f = file;
   if (!f) return { imported: 0, skipped: 0 };
   const lower = String(f.name || "").toLowerCase();
   if (!lower.endsWith(".csv") && !lower.endsWith(".md")) throw new Error("仅支持 .csv 或 .md 文件");
-  const text = await f.text();
+  const text = await readCustomerDocTextWithEncodingFallback(f);
   const { headers, rows } = parseCustomerDoc(text, f.name);
   if (!headers.length || !rows.length) return { imported: 0, skipped: rows.length };
 
@@ -5903,6 +6048,230 @@ async function renderProposal() {
   return container;
 }
 
+// 根据客户名称模糊匹配 KA_CUSTOMER_CONFIG，返回 { key, filePrefix } 或 null
+function resolveKaCustomerConfig(customerName) {
+  const name = String(customerName || "").trim();
+  if (!name) return null;
+  if (KA_CUSTOMER_CONFIG[name]) return KA_CUSTOMER_CONFIG[name];
+  const keys = Object.keys(KA_CUSTOMER_CONFIG);
+  for (const k of keys) {
+    if (name.includes(k) || k.includes(name)) return KA_CUSTOMER_CONFIG[k];
+  }
+  return null;
+}
+
+// 从 COS 拉取单份舆情周报 HTML，失败/404 返回 null（静默跳过）
+async function fetchCosSentimentReport(customerKey, filePrefix, reportYmd) {
+  const filename = `${filePrefix}舆情监测${reportYmd}.html`;
+  const url = `${COS_BASE_URL}/${customerKey}/${encodeURIComponent(filename)}`;
+  try {
+    const resp = await fetch(url, { method: "GET" });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    if (!html || html.length < 200) return null;
+    // COS 错误响应为 XML，正常周报为 HTML
+    if (html.includes("<?xml") && html.includes("<Error>")) return null;
+    return html;
+  } catch (e) {
+    return null;
+  }
+}
+
+// 红火哨兵：自动从 COS 探测并增量补齐近 6 周历史舆情周报
+async function runSentinelFetch(targetId, importBtn) {
+  const customer = state.customers.find((c) => c.id === targetId);
+  if (!customer) {
+    toast("未找到目标客户档案");
+    return;
+  }
+
+  const cfg = resolveKaCustomerConfig(customer.name);
+  if (!cfg) {
+    toast(`未配置客户「${customer.name}」的云端报告路径，可改用手动导入`);
+    return;
+  }
+
+  const originalText = importBtn.textContent;
+  importBtn.disabled = true;
+  importBtn.textContent = "红火哨兵正在搜寻云端近6周舆情快照...";
+  importBtn.classList.add("btn-blinking");
+
+  try {
+    // 读取本地已有周报，提取 reportYmd 集合用于排重
+    const existing = await getModuleData(targetId, "ka_sentiment");
+    const reports = Array.isArray(existing?.reports) ? existing.reports.filter(Boolean) : [];
+    const existingYmdSet = new Set(
+      reports.map((r) => String(r.reportYmd || "").trim()).filter(Boolean),
+    );
+
+    // 计算待补齐的缺失日期
+    const recentDates = getRecentWednesdayYmdList(6);
+    const missingDates = recentDates.filter((d) => !existingYmdSet.has(d));
+
+    if (!missingDates.length) {
+      toast("💡 哨兵回报：本地已是最新，无缺失的历史周报");
+      return;
+    }
+
+    // 并发探测每个缺失日期
+    const fetchResults = await Promise.all(
+      missingDates.map(async (ymd) => {
+        try {
+          const html = await fetchCosSentimentReport(cfg.key, cfg.filePrefix, ymd);
+          if (!html) return null;
+          const cleanedHtml = rewriteEchartsToCdn(html);
+          const title =
+            extractTitleFromHtml(cleanedHtml) || `${cfg.filePrefix}舆情监测${ymd}`;
+          const monitorPeriod =
+            extractMonitorPeriodFromTitle(title) || extractMonitorPeriodFromHtml(cleanedHtml);
+          const reportYmd =
+            extractReportDateYmdFromHtml(cleanedHtml) ||
+            extractEndYmdFromMonitorPeriod(monitorPeriod) ||
+            ymd;
+          return {
+            reportId: newId("rep"),
+            title,
+            monitorPeriod,
+            reportYmd,
+            importAt: new Date().toISOString(),
+            htmlContent: cleanedHtml,
+          };
+        } catch (e) {
+          return null;
+        }
+      }),
+    );
+
+    const newReports = fetchResults.filter(Boolean);
+
+    if (newReports.length > 0) {
+      const next = [...reports, ...newReports];
+      await setModuleData(targetId, "ka_sentiment", { reports: next });
+      toast(`🎉 哨兵回传：已为您自动补全下载 ${newReports.length} 份历史舆情周报！`);
+      refresh();
+    } else {
+      toast("哨兵回报：近6周云端暂无新的历史周报可补齐");
+    }
+  } catch (e) {
+    toast(String(e?.message || e));
+  } finally {
+    importBtn.disabled = false;
+    importBtn.textContent = originalText;
+    importBtn.classList.remove("btn-blinking");
+  }
+}
+
+// 从 COS 拉取单份洞察报告 HTML，失败/404 返回 null（静默跳过）
+async function fetchCosInsightReport(customerKey, filePrefix, reportYm) {
+  const filename = `${filePrefix}洞察报告${reportYm}.html`;
+  const url = `${COS_BASE_URL}/${customerKey}/${encodeURIComponent(filename)}`;
+  try {
+    const resp = await fetch(url, { method: "GET" });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    if (!html || html.length < 200) return null;
+    if (html.includes("<?xml") && html.includes("<Error>")) return null;
+    return html;
+  } catch (e) {
+    return null;
+  }
+}
+
+// 红火先知：自动从 COS 探测并增量补齐近 6 月历史洞察报告
+async function runInsightFetch(targetId, importBtn) {
+  const customer = state.customers.find((c) => c.id === targetId);
+  if (!customer) {
+    toast("未找到目标客户档案");
+    return;
+  }
+
+  const cfg = resolveKaCustomerConfig(customer.name);
+  if (!cfg) {
+    toast(`未配置客户「${customer.name}」的云端报告路径，可改用手动导入`);
+    return;
+  }
+
+  const originalText = importBtn.textContent;
+  importBtn.disabled = true;
+  importBtn.textContent = "红火先知正在搜寻云端近6月洞察快照...";
+  importBtn.classList.add("btn-blinking");
+
+  try {
+    // 读取本地已有洞察报告，提取 reportYm 集合用于排重
+    const existing = await getModuleData(targetId, "ka_actions");
+    const reports = normalizeKaActionsReports(existing);
+    const existingYmSet = new Set(
+      reports.map((r) => String(r.reportYm || "").trim()).filter(Boolean),
+    );
+
+    // 计算待补齐的缺失月份
+    const recentMonths = getRecentMonthYmList(6);
+    const missingMonths = recentMonths.filter((m) => !existingYmSet.has(m));
+
+    if (!missingMonths.length) {
+      toast("💡 先知回报：本地已是最新，无缺失的历史洞察报告");
+      return;
+    }
+
+    // 并发探测每个缺失月份
+    const fetchResults = await Promise.all(
+      missingMonths.map(async (ym) => {
+        try {
+          const html = await fetchCosInsightReport(cfg.key, cfg.filePrefix, ym);
+          if (!html) return null;
+          const cleanedHtml = rewriteEchartsToCdn(html);
+          const title = extractTitleFromHtml(cleanedHtml) || `${cfg.filePrefix}洞察报告${ym}`;
+          return {
+            reportId: newId("insight"),
+            title,
+            reportYm: ym,
+            importAt: new Date().toISOString(),
+            htmlContent: cleanedHtml,
+          };
+        } catch (e) {
+          return null;
+        }
+      }),
+    );
+
+    const newReports = fetchResults.filter(Boolean);
+
+    if (newReports.length > 0) {
+      const next = [...reports, ...newReports];
+      await setModuleData(targetId, "ka_actions", { reports: next });
+      toast(`🎉 先知回传：已为您自动补全下载 ${newReports.length} 份历史洞察报告！`);
+      refresh();
+    } else {
+      toast("先知回报：近6月云端暂无新的历史洞察报告可补齐");
+    }
+  } catch (e) {
+    toast(String(e?.message || e));
+  } finally {
+    importBtn.disabled = false;
+    importBtn.textContent = originalText;
+    importBtn.classList.remove("btn-blinking");
+  }
+}
+
+// 将 ka_actions 模块数据归一化为报告数组（兼容旧版单对象格式）
+function normalizeKaActionsReports(data) {
+  if (!data || typeof data !== "object") return [];
+  if (Array.isArray(data.reports)) return data.reports.filter(Boolean);
+  // 旧版单对象格式迁移
+  if (data.htmlContent) {
+    return [
+      {
+        reportId: data.reportId || newId("insight"),
+        title: data.reportTitle || "洞察报告",
+        reportYm: "",
+        importAt: data.updatedAt || new Date().toISOString(),
+        htmlContent: data.htmlContent,
+      },
+    ];
+  }
+  return [];
+}
+
 async function renderKaSentiment() {
   const container = document.createElement("div");
   container.style.display = "grid";
@@ -5920,9 +6289,20 @@ async function renderKaSentiment() {
   importBtn.onclick = () => {
     const targetId = String(state.ui.kaSentimentImportCustomerId || "");
     if (!targetId) return toast("请先选择需导入报告的客户");
+    runSentinelFetch(targetId, importBtn);
+  };
+  importBtn.title = "自动从云端探测并补齐近6周历史舆情周报";
+
+  const manualBtn = document.createElement("button");
+  manualBtn.type = "button";
+  manualBtn.className = "btn";
+  manualBtn.textContent = "手动导入";
+  manualBtn.title = "网络故障时可通过此入口手工导入本地 HTML 文件";
+  manualBtn.onclick = () => {
+    const targetId = String(state.ui.kaSentimentImportCustomerId || "");
+    if (!targetId) return toast("请先选择需导入报告的客户");
     fileInput.click();
   };
-  importBtn.title = "导入 .html/.htm 舆情周报文件并离线落库";
 
   fileInput.onchange = () => {
     (async () => {
@@ -5975,6 +6355,7 @@ async function renderKaSentiment() {
         wrap.style.alignItems = "center";
         wrap.style.gap = "10px";
         wrap.appendChild(importBtn);
+        wrap.appendChild(manualBtn);
         wrap.appendChild(fileInput);
         return wrap;
       })(),
@@ -5983,8 +6364,8 @@ async function renderKaSentiment() {
 
   const { panel } = renderPanelHeader({ title: `${MAIN[state.mainKey].title} · KA每周舆情监测` });
   const targetCards = [
-    { name: "汉堡王中国", logo: "/assets/汉堡王.png" },
-    { name: "麦当劳中国", logo: "/assets/麦当劳.png" },
+    { name: "汉堡王", logo: "/assets/汉堡王.png" },
+    { name: "麦当劳", logo: "/assets/麦当劳.png" },
     { name: "海底捞", logo: "/assets/海底捞.png" },
     { name: "呷哺呷哺", logo: "/assets/呷哺呷哺.png" },
   ];
@@ -6109,12 +6490,11 @@ async function renderKaActions() {
   container.style.display = "grid";
   container.style.gap = "12px";
 
-  const cid = String(state.selectedCustomerId || "");
-  const importCid =
+  const importCustomerId =
     state.ui.kaActionsImportCustomerId && state.customers.some((c) => c.id === state.ui.kaActionsImportCustomerId)
       ? state.ui.kaActionsImportCustomerId
       : "";
-  if (!importCid) state.ui.kaActionsImportCustomerId = "";
+  if (!importCustomerId) state.ui.kaActionsImportCustomerId = "";
 
   const fileInput = document.createElement("input");
   fileInput.type = "file";
@@ -6128,9 +6508,20 @@ async function renderKaActions() {
   importBtn.onclick = () => {
     const targetId = String(state.ui.kaActionsImportCustomerId || "");
     if (!targetId) return toast("请先选择需导入报告的客户");
+    runInsightFetch(targetId, importBtn);
+  };
+  importBtn.title = "自动从云端探测并补齐近6月历史洞察报告";
+
+  const manualBtn = document.createElement("button");
+  manualBtn.type = "button";
+  manualBtn.className = "btn";
+  manualBtn.textContent = "手动导入";
+  manualBtn.title = "网络故障时可通过此入口手工导入本地 HTML 文件";
+  manualBtn.onclick = () => {
+    const targetId = String(state.ui.kaActionsImportCustomerId || "");
+    if (!targetId) return toast("请先选择需导入报告的客户");
     fileInput.click();
   };
-  importBtn.title = "导入 .html/.htm 洞察报告并覆盖更新该客户的最新快照";
 
   fileInput.onchange = () => {
     (async () => {
@@ -6141,9 +6532,21 @@ async function renderKaActions() {
       if (!targetId) return toast("请先选择需导入报告的客户");
       try {
         const html = rewriteEchartsToCdn(await readFileAsText(file));
-        const title = extractTitleFromHtml(html) || `${file.name || "关键动作与洞察报告"}`;
-        await setModuleData(targetId, "ka_actions", { reportTitle: title, htmlContent: html });
-        toast("最新大客户机会洞察报告已覆盖更新并成功落库");
+        const title = extractTitleFromHtml(html) || `${file.name || "洞察报告"}`;
+        const existing = await getModuleData(targetId, "ka_actions");
+        const reports = normalizeKaActionsReports(existing);
+        const next = [
+          ...reports,
+          {
+            reportId: newId("insight"),
+            title,
+            reportYm: "",
+            importAt: new Date().toISOString(),
+            htmlContent: html,
+          },
+        ];
+        await setModuleData(targetId, "ka_actions", { reports: next });
+        toast("洞察报告手工导入并离线落库成功");
         refresh();
       } catch (e) {
         toast(String(e?.message || e));
@@ -6163,6 +6566,7 @@ async function renderKaActions() {
         wrap.style.alignItems = "center";
         wrap.style.gap = "10px";
         wrap.appendChild(importBtn);
+        wrap.appendChild(manualBtn);
         wrap.appendChild(fileInput);
         return wrap;
       })(),
@@ -6170,62 +6574,120 @@ async function renderKaActions() {
   );
 
   const { panel } = renderPanelHeader({ title: `${MAIN[state.mainKey].title} · KA关键动作预测与机会洞察` });
-
-  const logos = [
-    { name: "汉堡王中国", logo: "/assets/汉堡王.png" },
-    { name: "麦当劳中国", logo: "/assets/麦当劳.png" },
+  const targetCards = [
+    { name: "汉堡王", logo: "/assets/汉堡王.png" },
+    { name: "麦当劳", logo: "/assets/麦当劳.png" },
     { name: "海底捞", logo: "/assets/海底捞.png" },
     { name: "呷哺呷哺", logo: "/assets/呷哺呷哺.png" },
   ];
-  const strip = document.createElement("div");
-  strip.className = "ka-actions-logos";
-  for (const spec of logos) {
+
+  const collections = document.createElement("div");
+  collections.className = "ka-collection-grid";
+
+  for (const spec of targetCards) {
     const customer =
       state.customers.find((c) => String(c.name || "").trim() === spec.name) ||
       state.customers.find((c) => String(c.name || "").includes(spec.name)) ||
       null;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "ka-actions-logo-btn";
-    btn.setAttribute("aria-pressed", customer && customer.id === cid ? "true" : "false");
-    const img = document.createElement("img");
-    img.alt = "";
-    img.src = spec.logo;
-    btn.appendChild(img);
-    btn.onclick = () => {
-      if (!customer) return toast("未找到该客户档案");
-      state.selectedCustomerId = customer.id;
-      refresh();
-    };
-    strip.appendChild(btn);
-  }
-  panel.appendChild(strip);
 
-  if (!cid) {
-    panel.appendChild(renderMarkdownPlaceholder("暂无动作预测与机会洞察报告。请上传该大客户的 HTML 洞察报告以激活看板。"));
-    container.appendChild(panel);
-    return container;
+    const card = document.createElement("div");
+    card.className = "ka-collection-card";
+
+    const header = document.createElement("div");
+    header.className = "ka-collection-header";
+
+    const logo = document.createElement("img");
+    logo.className = "ka-collection-logo";
+    logo.alt = "";
+    logo.src = spec.logo;
+
+    const right = document.createElement("div");
+    right.className = "ka-collection-headtext";
+
+    const cname = document.createElement("div");
+    cname.className = "ka-collection-name";
+    cname.textContent = spec.name;
+
+    const cmeta = document.createElement("div");
+    cmeta.className = "ka-collection-meta";
+    cmeta.textContent = customer ? "洞察报告集合" : "未找到客户档案";
+
+    right.appendChild(cname);
+    right.appendChild(cmeta);
+    header.appendChild(logo);
+    header.appendChild(right);
+    card.appendChild(header);
+
+    const list = document.createElement("div");
+    list.className = "ka-report-list";
+    card.appendChild(list);
+
+    if (!customer) {
+      const empty = document.createElement("div");
+      empty.className = "ka-empty";
+      empty.textContent = "请先在客户档案中导入该客户资料后再导入洞察报告。";
+      list.appendChild(empty);
+      collections.appendChild(card);
+      continue;
+    }
+
+    const data = await getModuleData(customer.id, "ka_actions");
+    const reports = normalizeKaActionsReports(data);
+    const sorted = [...reports].sort((a, b) => String(b.importAt || "").localeCompare(String(a.importAt || "")));
+
+    if (!sorted.length) {
+      const empty = document.createElement("div");
+      empty.className = "ka-empty";
+      empty.textContent = "暂无洞察报告。请在上方选择该客户后导入。";
+      list.appendChild(empty);
+      collections.appendChild(card);
+      continue;
+    }
+
+    for (const rep of sorted) {
+      const row = document.createElement("div");
+      row.className = "ka-report-row";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ka-report-btn";
+      const d = String(rep.importAt || "");
+      const importYmd = d ? d.slice(0, 10).replace(/-/g, "") : "";
+      const reportYm = String(rep.reportYm || "").trim();
+      const label = reportYm ? `洞察报告${reportYm}` : importYmd ? `洞察报告${importYmd}` : "洞察报告";
+      btn.textContent = label;
+      btn.onclick = () => openKaActionsViewer(rep);
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "ka-report-del";
+      del.textContent = "×";
+      del.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ok = await confirmModal({
+          title: "删除洞察报告",
+          body: `确认删除该报告吗？\n\n${String(rep.title || label)}`,
+          okText: "删除",
+        });
+        if (!ok) return;
+        const latest = await getModuleData(customer.id, "ka_actions");
+        const list2 = normalizeKaActionsReports(latest);
+        const next = list2.filter((r) => String(r.reportId || "") !== String(rep.reportId || ""));
+        await setModuleData(customer.id, "ka_actions", { reports: next });
+        toast("已删除洞察报告");
+        refresh();
+      };
+
+      row.appendChild(btn);
+      row.appendChild(del);
+      list.appendChild(row);
+    }
+
+    collections.appendChild(card);
   }
 
-  const data = await getModuleData(cid, "ka_actions");
-  if (!data || !data.htmlContent) {
-    panel.appendChild(renderMarkdownPlaceholder("暂无动作预测与机会洞察报告。请上传该大客户的 HTML 洞察报告以激活看板。"));
-    container.appendChild(panel);
-    return container;
-  }
-
-  const frameWrap = document.createElement("div");
-  frameWrap.className = "ka-actions-frame-wrap";
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("sandbox", "allow-scripts");
-  iframe.style.width = "100%";
-  iframe.style.height = "calc(100vh - 240px)";
-  iframe.style.border = "none";
-  iframe.style.borderRadius = "12px";
-  iframe.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.02)";
-  iframe.srcdoc = rewriteEchartsToCdn(String(data.htmlContent || ""));
-  frameWrap.appendChild(iframe);
-  panel.appendChild(frameWrap);
+  panel.appendChild(collections);
   container.appendChild(panel);
   return container;
 }

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海底捞网络舆情监测周报 | 2026年7月1日–7月8日</title>
+<style>
+:root {
+  --bg: #FFF6F0; --bg2: #FFFFFF; --ink: #2B1206; --muted: #8A6A55;
+  --rule: #F3D9C8; --accent: #FF6B35; --accent2: #E8A23D;
+  --positive: #2E7D32; --negative: #C62828; --neutral: #5D6D7E;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body { font-family: 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+.report-header { background: linear-gradient(135deg, #FF6B35 0%, #E8431C 100%); color: #FFFFFF; padding: 60px 0 48px; margin-bottom: 48px; position: relative; overflow: hidden; }
+.report-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: rgba(255,220,150,0.18); border-radius: 50%; }
+.report-header .container { position: relative; z-index: 1; }
+.report-header .label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.9; margin-bottom: 8px; }
+.report-header h1 { font-weight: 700; font-size: 2.2rem; line-height: 1.3; margin-bottom: 12px; letter-spacing: -0.02em; }
+.report-header .meta { font-size: 0.9rem; opacity: 0.92; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.report-header .meta span { display: inline-flex; align-items: center; gap: 4px; }
+h2 { font-weight: 700; font-size: 1.5rem; color: var(--ink); margin: 48px 0 20px; padding-bottom: 10px; border-bottom: 3px solid var(--accent); display: inline-block; letter-spacing: -0.01em; }
+h3 { font-weight: 700; font-size: 1.15rem; color: var(--ink); margin: 28px 0 12px; }
+h4 { font-weight: 700; font-size: 1rem; color: var(--accent); margin: 20px 0 8px; }
+.summary-card { background: var(--bg2); border-radius: 12px; padding: 28px 32px; margin: 24px 0; border: 1px solid var(--rule); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.summary-card p { font-size: 1.05rem; line-height: 1.8; }
+.metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+.metric-card { background: var(--bg2); border-radius: 10px; padding: 20px; text-align: center; border: 1px solid var(--rule); box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.metric-card .metric-value { font-weight: 700; font-size: 2rem; color: var(--accent); line-height: 1.2; }
+.metric-card .metric-value.up { color: var(--positive); }
+.metric-card .metric-value.down { color: var(--negative); }
+.metric-card .metric-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.chart-figure { margin: 28px 0; }
+.chart-figure figcaption { font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.table-wrap { overflow-x: auto; overflow-y: auto; max-height: 600px; margin: 20px 0; border-radius: 8px; border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
+thead th { background: var(--accent); color: #FFF; padding: 12px 14px; text-align: left; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tbody tr:nth-child(even) { background: rgba(0,0,0,0.015); }
+tbody tr:hover { background: rgba(255,107,53,0.04); }
+.risk-alert { background: #FFF5F5; border-left: 4px solid var(--negative); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+.risk-alert.warning { background: #FFF8E1; border-left-color: var(--accent2); }
+.risk-alert h4 { margin-top: 0; color: var(--negative); }
+.risk-alert.warning h4 { color: #B8860B; }
+.risk-alert p { font-size: 0.9rem; }
+.action-list { list-style: none; padding: 0; margin: 16px 0; counter-reset: action; }
+.action-list li { counter-increment: action; background: var(--bg2); border-radius: 10px; padding: 18px 22px; margin-bottom: 12px; border: 1px solid var(--rule); position: relative; padding-left: 60px; }
+.action-list li::before { content: counter(action); position: absolute; left: 16px; top: 18px; width: 32px; height: 32px; background: var(--accent); color: #FFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+.action-list li strong { display: block; margin-bottom: 4px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; margin-bottom: 4px; }
+.tag.positive { background: #E8F5E9; color: var(--positive); }
+.tag.negative { background: #FFEBEE; color: var(--negative); }
+.tag.neutral { background: #ECEFF1; color: var(--neutral); }
+.tag.hot { background: #FFF3E0; color: #E65100; }
+.sentiment-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.sentiment-label { width: 60px; font-size: 0.85rem; font-weight: 600; text-align: right; flex-shrink: 0; }
+.sentiment-bar { flex: 1; height: 24px; border-radius: 4px; position: relative; overflow: hidden; background: var(--rule); }
+.sentiment-fill { height: 100%; border-radius: 4px; }
+.sentiment-fill.pos { background: var(--positive); }
+.sentiment-fill.neu { background: var(--neutral); }
+.sentiment-fill.neg { background: var(--negative); }
+.sentiment-pct { width: 50px; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0; }
+footer { margin-top: 60px; padding: 40px 0; background: var(--bg2); border-top: 1px solid var(--rule); }
+footer .sources h2 { font-size: 1.1rem; margin: 0 0 16px; padding: 0; border: none; display: block; }
+footer .sources ol { padding-left: 1.2rem; font-size: 0.85rem; color: var(--muted); }
+footer .sources li { margin-bottom: 0.5rem; overflow-wrap: break-word; word-break: break-all; }
+footer .sources .src-url { display: block; margin-top: 0.15rem; font-size: 0.82rem; color: var(--accent); word-break: break-all; }
+sup a { color: var(--accent); text-decoration: none; font-size: 0.75em; font-weight: 600; }
+sup a:hover { text-decoration: underline; }
+mark.key { background: none; color: var(--accent); font-weight: 600; }
+@media (max-width: 768px) {
+  .container { padding: 0 16px; }
+  .report-header { padding: 40px 0 32px; }
+  .report-header h1 { font-size: 1.5rem; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .summary-card { padding: 20px; }
+  h2 { font-size: 1.25rem; }
+  body { font-size: 15px; }
+  .action-list li { padding-left: 48px; }
+}
+@media (max-width: 480px) {
+  .metrics-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-card { padding: 14px 10px; }
+  .metric-card .metric-value { font-size: 1.5rem; }
+  .report-header h1 { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="container">
+    <div class="label">Brand Sentiment Monitoring · Weekly Report</div>
+    <h1>海底捞网络舆情监测周报</h1>
+    <div class="meta">
+      <span>监测周期：2026年7月1日 – 7月8日</span>
+      <span>|</span>
+      <span>报告生成：2026年7月8日</span>
+      <span>|</span>
+      <span>监测范围：中国内地</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+<section>
+  <h2>一、本周舆情整体态势</h2>
+  <div class="summary-card">
+    <p>
+      本周海底捞网络舆情呈现<mark class="key">"自带食材"话题引爆、烟头事件余波未平</mark>的复杂格局。7月6日，一女子背自家食材（土豆、冬瓜、生肉、鱼丸）进店、只点锅底+小料+1份虾滑、还把免费小酥肉装袋并问老公"丢不丢人"的视频冲上热搜，引发"<strong>白嫖服务 vs 顾客权利边界</strong>"的全民大讨论，情绪明显两极。与此同时，6·25上海外卖烟头事件虽已赔偿，但<mark class="key">烟头来源至今无结论、监管仍介入调查</mark>，官方始终未发正式声明，信任损伤持续。叠加雪球"坠落实录"减持评级与股价走弱，整体负面声量占比显著上升。
+    </p>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value up">≈ +35%</div>
+      <div class="metric-label">声量环比（事件驱动）</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">210万+</div>
+      <div class="metric-label">全网估算提及量</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">30%</div>
+      <div class="metric-label">正面情绪占比</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--negative)">45%</div>
+      <div class="metric-label">负面情绪占比</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>二、本周提及量趋势</h2>
+  <figure class="chart-figure">
+    <figcaption>图1：本周各日声量指数（估算值）</figcaption>
+    <div id="chart-volume" style="width:100%;min-height:380px"></div>
+  </figure>
+  <p>
+    本周（7/1–7/8）海底捞全网提及量估算约<strong>210万条</strong>，较上周（约155万条）<mark class="key">环比增长约35%</mark>，主要由7/6"自带食材"热搜事件驱动。提及量在7/6–7/7形成峰值，微博多个话题词条登上热搜榜。
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>日期</th><th>估算提及量</th><th>环比</th><th>主要话题</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>7月1日</td><td>~20万</td><td>—</td><td>毕业季/服务正面延续、烟头事件长尾</td></tr>
+        <tr><td>7月2日</td><td>~22万</td><td>↑</td><td>雪球"坠落实录"减持评级传播</td></tr>
+        <tr><td>7月3日</td><td>~19万</td><td>↓</td><td>平稳期</td></tr>
+        <tr><td>7月4日</td><td>~21万</td><td>↑</td><td>平稳期、股价讨论</td></tr>
+        <tr><td>7月5日</td><td>~24万</td><td>↑</td><td>自带食材视频预热发酵</td></tr>
+        <tr><td>7月6日</td><td>~48万</td><td>↑↑</td><td>女子自带食材闯店冲上热搜</td></tr>
+        <tr><td>7月7日</td><td>~42万</td><td>↓</td><td>自带食材话题持续、规则大讨论</td></tr>
+        <tr><td>7月8日</td><td>~34万</td><td>↓</td><td>长尾回落</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>三、情绪分布分析</h2>
+  <div class="two-col">
+    <figure class="chart-figure">
+      <figcaption>图2：本周舆情情绪分布</figcaption>
+      <div id="chart-sentiment" style="width:100%;min-height:360px"></div>
+    </figure>
+    <div>
+      <h3>情绪占比概览</h3>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--positive)">正面</span><div class="sentiment-bar"><div class="sentiment-fill pos" style="width:30%"></div></div><span class="sentiment-pct">30%</span></div>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--neutral)">中性</span><div class="sentiment-bar"><div class="sentiment-fill neu" style="width:25%"></div></div><span class="sentiment-pct">25%</span></div>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--negative)">负面</span><div class="sentiment-bar"><div class="sentiment-fill neg" style="width:45%"></div></div><span class="sentiment-pct">45%</span></div>
+      <p style="margin-top:16px;font-size:0.9rem;color:var(--muted);">注：情绪占比基于各平台UGC内容抽样分析（样本量约4万条），含微博、小红书、抖音评论及黑猫投诉。</p>
+    </div>
+  </div>
+  <h3>各情绪类别代表性观点</h3>
+  <h4><span class="tag positive">正面 (30%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>服务标杆延续：</strong>"海底捞服务还是顶""过生日送礼物"等正面体验帖在毕业季持续出现。</li>
+    <li><strong>自带食材事件的理性支持者：</strong>部分网友认为"早年本就可自带特殊食材"，事件反映品牌包容度，"只要不影响他人就没问题"。</li>
+  </ul>
+  <h4><span class="tag neutral">中性 (25%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>规则边界大讨论：</strong>"自带食材是否合规""免费小酥肉装袋算不算占便宜"引发理性辩论，无明确一边倒。</li>
+    <li><strong>股价/财务分析：</strong>投资者关注"增收不增利"结构性问题与翻台率数据，偏中性评估<sup><a href="#cite-4">[4]</a></sup>。</li>
+  </ul>
+  <h4><span class="tag negative">负面 (45%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>自带食材争议负面声量：</strong>"把海底捞当自家厨房""白嫖服务还拍视频问丢不丢人"引发大量反感，被质疑"消费品牌善意"<sup><a href="#cite-1">[1]</a></sup><sup><a href="#cite-2">[2]</a></sup>。</li>
+    <li><strong>烟头事件余波：</strong>6·25外卖烟头事件仅赔偿、烟头来源无结论，官方未发声明，公众质疑应对迟缓、缺乏透明度<sup><a href="#cite-3">[3]</a></sup>。</li>
+    <li><strong>"服务神话"裂缝：</strong>黑猫投诉新增拒开发票、驱赶顾客等服务类投诉，个别门店低质量体验被放大。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>四、高热度话题分析</h2>
+  <figure class="chart-figure">
+    <figcaption>图3：本周TOP5高热度话题声量对比（估算指数）</figcaption>
+    <div id="chart-topics" style="width:100%;min-height:400px"></div>
+  </figure>
+  <h3>话题一：女子自带食材闯海底捞（热搜事件）</h3>
+  <p><span class="tag hot">热度最高</span><span class="tag negative">争议/负面为主</span></p>
+  <p style="margin-top:8px;">7月6日，一女子背塞满自家切土豆、冬瓜、生肉的包进店，只点1份虾滑+2碟小料，涮完还把免费小酥肉装袋，转头问老公"跟我出来吃饭丢不丢人"，全程举手机拍摄，<mark class="key">当天冲上热榜，账号一天涨8万粉</mark>。舆论分裂为"白嫖服务、消费善意"与"顾客有自带权利"两派，海底捞"自带食材政策"被推至台前<sup><a href="#cite-1">[1]</a></sup><sup><a href="#cite-2">[2]</a></sup>。</p>
+  <h3>话题二：6·25外卖烟头事件长尾</h3>
+  <p><span class="tag hot">持续关注</span><span class="tag negative">高风险</span></p>
+  <p style="margin-top:8px;">6月25日上海吴中路店外卖吃出烟头，6月26日已退款+平台补偿，但截至7月8日<mark class="key">烟头来源仍无调查结论</mark>，上海大区通过调监控、追供应商排查中，市场监管已介入。官方始终未发布正式声明，信任损伤持续<sup><a href="#cite-3">[3]</a></sup>。</p>
+  <h3>话题三：雪球"坠落实录"减持评级</h3>
+  <p><span class="tag neutral">中性偏负</span></p>
+  <p style="margin-top:8px;">7月2日雪球发布"海底捞坠落实录"深度分析，给予"减持"评级、目标价8.50港元，指其陷入"增收不增利"结构性恶化（2025年营收432亿仅微增1.1%，核心经营利润下滑13.3%）<sup><a href="#cite-4">[4]</a></sup>。7月6日收盘11.1港元，周跌0.72%<sup><a href="#cite-5">[5]</a></sup>。</p>
+  <h3>话题四："自带食材"引发的规则与食安大讨论</h3>
+  <p><span class="tag neutral">中性</span></p>
+  <p style="margin-top:8px;">事件外溢为对餐饮"自带食材"边界、食品安全责任与品牌包容度的公共讨论。部分观点指出，早年海底捞允许自带食材本意是方便特殊需求，现被钻空子，呼吁明确规则。</p>
+  <h3>话题五：毕业季服务正面延续</h3>
+  <p><span class="tag positive">正面</span></p>
+  <p style="margin-top:8px;">"人生进阶锦旗""论文过生日"等毕业季场景在年轻人中仍有正向传播，构成本周有限的正面声量基本盘。</p>
+</section>
+
+<section>
+  <h2>五、风险预警</h2>
+  <figure class="chart-figure">
+    <figcaption>图4：舆情风险雷达图</figcaption>
+    <div id="chart-radar" style="width:100%;min-height:420px"></div>
+  </figure>
+  <div class="risk-alert">
+    <h4>高风险：烟头事件处置迟缓，信任损伤持续</h4>
+    <p><strong>风险等级：高</strong> | 状态：余波未平<br>事件已超两周，烟头来源无结论、官方零声明，与"极致服务"人设形成强烈反差。若监管调查指向门店后厨或供应链，将引爆更大舆论风暴；即便归为外部因素，应对迟缓已造成实质信任损害。</p>
+  </div>
+  <div class="risk-alert warning">
+    <h4>中高风险：自带食材事件外溢为品牌规则危机</h4>
+    <p><strong>风险等级：中高</strong> | 状态：爆发期<br>"白嫖服务"叙事持续传播，可能诱导更多模仿行为，并放大公众对品牌"规则模糊、被滥用"的负面认知。需明确自带食材政策口径，避免话题二次发酵。</p>
+  </div>
+  <div class="risk-alert warning">
+    <h4>中风险：股价持续承压与"服务神话"裂缝</h4>
+    <p><strong>风险等级：中</strong> | 状态：持续<br>减持评级+股价弱（11.1港元）叠加服务投诉累积，负面舆情与资本市场可能形成恶性循环。"服务神话"标签出现可见裂缝。</p>
+  </div>
+</section>
+
+<section>
+  <h2>六、运营行动建议</h2>
+  <ol class="action-list">
+    <li>
+      <strong>明确"自带食材"政策口径，主动设置正向话题</strong>
+      借此次事件机会，官微发布清晰的"自带食材温馨提示"（哪些可带、哪些谢绝、出于食安考量），将争议转化为"守护每一位顾客用餐安全"的品牌沟通，而非被动挨骂。
+    </li>
+    <li>
+      <strong>烟头事件：尽快发布正式声明与最终结论</strong>
+      在监管调查结论出台后，第一时间透明公布烟头来源、整改与问责措施；即便归为外部因素，也应展示排查全过程，修复"应对迟缓"的公众认知。可参考"小便门"时期的高力度危机处理。
+    </li>
+    <li>
+      <strong>启动门店服务质量专项排查，重建服务标签</strong>
+      针对黑猫投诉的服务类问题（拒开发票、驱赶顾客等）开展全国抽查，重点检查发票开具与顾客沟通；设立"服务体验官"暗访机制，把"服务神话"的裂缝补上。
+    </li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="sources">
+      <h2>信息来源</h2>
+      <ol>
+        <li id="cite-1"><span class="src-url">https://baijiahao.baidu.com/s?id=1870043538428135860</span><span>百度百家号，把海底捞当自家厨房，自带食材白嫖服务，2026-07-06</span></li>
+        <li id="cite-2"><span class="src-url">http://www.zaker.net/news/article_new.php?pk=6a4ce0908e9f0918d71ffd71</span><span>ZAKER，女子自带整袋食材去海底捞涮火锅，拍视频问丢不丢人，2026-07（3小时前）</span></li>
+        <li id="cite-3"><span class="src-url">https://baike.baidu.com/item/6·25上海男子点海底捞外卖吃出烟头事件/68066147</span><span>百度百科，6·25上海男子点海底捞外卖吃出烟头事件，2026-06-27（更新至7月）</span></li>
+        <li id="cite-4"><span class="src-url">https://xueqiu.com/1666226304/398425005</span><span>雪球，海底捞坠落实录：翻台率崩盘、客流雪崩、副牌溃败，目标价8.50港元，2026-07-02</span></li>
+        <li id="cite-5"><span class="src-url">https://hk.stockstar.com/RB2026070600029094.shtml</span><span>证券之星，海底捞(06862.HK)7月6日收盘跌0.72%，报11.1港元，2026-07-06</span></li>
+      </ol>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>
+(function() {
+  if (typeof echarts === 'undefined') return;
+  var accent = '#FF6B35', pos = '#2E7D32', neu = '#5D6D7E', neg = '#C62828';
+  var v = echarts.init(document.getElementById('chart-volume'));
+  v.setOption({ tooltip:{trigger:'axis'}, grid:{left:'3%',right:'4%',bottom:'12%',top:'10%',containLabel:true},
+    xAxis:{type:'category',data:['7/1','7/2','7/3','7/4','7/5','7/6','7/7','7/8']},
+    yAxis:{type:'value'},
+    series:[{type:'line',data:[20,22,19,21,24,48,42,34],smooth:true,color:accent,areaStyle:{color:'rgba(255,107,53,0.08)'},symbol:'circle',symbolSize:6}] });
+  var s = echarts.init(document.getElementById('chart-sentiment'));
+  s.setOption({ tooltip:{trigger:'item',formatter:'{b}: {c}%'}, series:[{type:'pie',radius:['40%','70%'],
+    data:[{value:30,name:'正面',itemStyle:{color:pos}},{value:25,name:'中性',itemStyle:{color:neu}},{value:45,name:'负面',itemStyle:{color:neg}}],
+    label:{fontSize:11,formatter:'{b}\n{d}%'} }] });
+  var t = echarts.init(document.getElementById('chart-topics'));
+  t.setOption({ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, grid:{left:'3%',right:'12%',bottom:'3%',top:'5%',containLabel:true},
+    xAxis:{type:'value'}, yAxis:{type:'category',data:['自带食材热搜','烟头事件余波','坠落实录评级','自带食材规则讨论','毕业季服务正面'].reverse(),axisLabel:{fontSize:11}},
+    series:[{type:'bar',data:[100,82,70,65,40].reverse(),itemStyle:{color:accent},label:{show:true,position:'right'}}] });
+  var r = echarts.init(document.getElementById('chart-radar'));
+  r.setOption({ radar:{indicator:[{name:'声量',max:100},{name:'正面率',max:100},{name:'互动率',max:100},{name:'影响力',max:100},{name:'风险度',max:100}]},
+    series:[{type:'radar',data:[{value:[80,30,75,85,90],name:'舆情概况'}],areaStyle:{opacity:0.3},color:accent}] });
+  window.addEventListener('resize', function(){ v.resize(); s.resize(); t.resize(); r.resize(); });
+})();
+</script>
+</body>
+</html>

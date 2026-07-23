@@ -1428,6 +1428,20 @@
         }
       }
 
+      @keyframes blinkText {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .btn-blinking {
+        animation: blinkText 1s ease-in-out infinite;
+      }
+
       .ai-loading-text {
         font-size: 13px;
         color: #374151;

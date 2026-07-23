@@ -1,0 +1,20 @@
+腾讯云COS储存桶信息
+
+1.桶名：bucketforkoagents-1393865189
+2.访问域名：https://bucketforkoagents-1393865189.cos.ap-shanghai.myqcloud.com
+3.桶名下的目录：
+   一级目录：sentiment/ 
+   二级目录（品牌舆情监测报告将放在二级目录）：
+	- sentiment/burgerking/
+	- sentiment/haidilao/
+	- sentiment/mcdonald/
+	- sentiment/xiabu/
+4. 跨域访问 CORS 设置
+    - 来源 Origin：http://localhost:*；https://koagents.zeabur.app
+    - 操作Methods：Get
+5. Policy权限策略
+	- 策略ID：forkoagents-upload
+	- 用户类型：主账号
+	- 账号ID：100045690081
+	- 授权资源：bucketforkoagents-1393865189/sentiment/*
+	- 授权操作：读操作（不含列出对象列表）、写操作、简单上传、分块上传相关全部操作

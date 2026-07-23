@@ -1,0 +1,182 @@
+[
+  {
+    "file": "呷哺呷哺湊湊舆情监测20260609.html",
+    "brand": "呷哺呷哺湊湊",
+    "date": "2026-06-09",
+    "period": "2026年06月03日 — 06月10日",
+    "channels": "",
+    "chars": 6273,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\呷哺呷哺湊湊\\20260609.md"
+  },
+  {
+    "file": "呷哺呷哺湊湊舆情监测20260616.html",
+    "brand": "呷哺呷哺湊湊",
+    "date": "2026-06-16",
+    "period": "2026年06月10日 — 06月17日",
+    "channels": "社交媒体 · 新闻媒体 · 投诉平台",
+    "chars": 5628,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\呷哺呷哺湊湊\\20260616.md"
+  },
+  {
+    "file": "呷哺呷哺湊湊舆情监测20260625.html",
+    "brand": "呷哺呷哺湊湊",
+    "date": "2026-06-25",
+    "period": "2026年06月17日 — 06月24日",
+    "channels": "",
+    "chars": 5056,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\呷哺呷哺湊湊\\20260625.md"
+  },
+  {
+    "file": "呷哺呷哺湊湊舆情监测20260701.html",
+    "brand": "呷哺呷哺湊湊",
+    "date": "2026-07-01",
+    "period": "",
+    "channels": "",
+    "chars": 6319,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\呷哺呷哺湊湊\\20260701.md"
+  },
+  {
+    "file": "呷哺呷哺湊湊舆情监测20260708.html",
+    "brand": "呷哺呷哺湊湊",
+    "date": "2026-07-08",
+    "period": "2026年7月1日—7月8日",
+    "channels": "",
+    "chars": 3572,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\呷哺呷哺湊湊\\20260708.md"
+  },
+  {
+    "file": "汉堡王舆情监测20260616.html",
+    "brand": "汉堡王",
+    "date": "2026-06-16",
+    "period": "",
+    "channels": "",
+    "chars": 5899,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\汉堡王\\20260616.md"
+  },
+  {
+    "file": "汉堡王舆情监测20260625.html",
+    "brand": "汉堡王",
+    "date": "2026-06-25",
+    "period": "",
+    "channels": "",
+    "chars": 6470,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\汉堡王\\20260625.md"
+  },
+  {
+    "file": "汉堡王舆情监测20260701.html",
+    "brand": "汉堡王",
+    "date": "2026-07-01",
+    "period": "2026年6月24日—7月1日",
+    "channels": "",
+    "chars": 6807,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\汉堡王\\20260701.md"
+  },
+  {
+    "file": "汉堡王舆情监测20260708.html",
+    "brand": "汉堡王",
+    "date": "2026-07-08",
+    "period": "2026年7月1日—7月8日",
+    "channels": "",
+    "chars": 3676,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\汉堡王\\20260708.md"
+  },
+  {
+    "file": "汉堡王舆情监测260609.html",
+    "brand": "汉堡王",
+    "date": "2026-06-09",
+    "period": "2026年6月3日—6月10日",
+    "channels": "社交媒体、新闻媒体、博客、投诉平台",
+    "chars": 6425,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\汉堡王\\20260609.md"
+  },
+  {
+    "file": "海底捞舆情监测20260609.html",
+    "brand": "海底捞",
+    "date": "2026-06-09",
+    "period": "2026年06月03日 — 06月09日",
+    "channels": "",
+    "chars": 6820,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\海底捞\\20260609.md"
+  },
+  {
+    "file": "海底捞舆情监测20260616.html",
+    "brand": "海底捞",
+    "date": "2026-06-16",
+    "period": "",
+    "channels": "",
+    "chars": 8636,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\海底捞\\20260616.md"
+  },
+  {
+    "file": "海底捞舆情监测20260625.html",
+    "brand": "海底捞",
+    "date": "2026-06-25",
+    "period": "",
+    "channels": "",
+    "chars": 8004,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\海底捞\\20260625.md"
+  },
+  {
+    "file": "海底捞舆情监测20260701.html",
+    "brand": "海底捞",
+    "date": "2026-07-01",
+    "period": "2026年6月24日—6月30日",
+    "channels": "",
+    "chars": 5107,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\海底捞\\20260701.md"
+  },
+  {
+    "file": "海底捞舆情监测20260708.html",
+    "brand": "海底捞",
+    "date": "2026-07-08",
+    "period": "2026年7月1日—7月8日",
+    "channels": "",
+    "chars": 3545,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\海底捞\\20260708.md"
+  },
+  {
+    "file": "麦当劳舆情监测20260609.html",
+    "brand": "麦当劳",
+    "date": "2026-06-09",
+    "period": "2026年6月3日—6月10日",
+    "channels": "小红书 · 微博 · 知乎 · 微信公众号 · 新闻媒体",
+    "chars": 6212,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\麦当劳\\20260609.md"
+  },
+  {
+    "file": "麦当劳舆情监测20260616.html",
+    "brand": "麦当劳",
+    "date": "2026-06-16",
+    "period": "2026年6月10日—6月17日",
+    "channels": "",
+    "chars": 6478,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\麦当劳\\20260616.md"
+  },
+  {
+    "file": "麦当劳舆情监测20260625.html",
+    "brand": "麦当劳",
+    "date": "2026-06-25",
+    "period": "2026年6月17日—24",
+    "channels": "",
+    "chars": 6398,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\麦当劳\\20260625.md"
+  },
+  {
+    "file": "麦当劳舆情监测20260701.html",
+    "brand": "麦当劳",
+    "date": "2026-07-01",
+    "period": "2026年6月24日—7月1日",
+    "channels": "",
+    "chars": 6325,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\麦当劳\\20260701.md"
+  },
+  {
+    "file": "麦当劳舆情监测20260708.html",
+    "brand": "麦当劳",
+    "date": "2026-07-08",
+    "period": "2026年7月1日—7月8日",
+    "channels": "",
+    "chars": 3907,
+    "raw": "D:/AI_Projects/koAgents/知识库/_extract_raw\\麦当劳\\20260708.md"
+  }
+]

@@ -9,3 +9,9 @@ pnpm-debug.log*
 
 .env
 coze.config.json
+
+# 客户数据备份（含敏感客户信息，不提交）
+客户数据备份/
+
+# 临时文件
+_commit_msg.txt

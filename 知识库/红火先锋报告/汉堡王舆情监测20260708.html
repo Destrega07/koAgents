@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉堡王中国网络舆情周报 | 2026年7月1日–7月8日</title>
+<style>
+:root {
+  --bg: #FFF6F1; --bg2: #FFFFFF; --ink: #2B1A12; --muted: #8A6B5C;
+  --rule: #F0D9CC; --accent: #D4451B; --accent2: #E8A23D;
+  --positive: #2E7D32; --negative: #C62828; --neutral: #5D6D7E;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+  background: var(--bg); color: var(--ink); line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+.report-header {
+  background: linear-gradient(135deg, #D4451B 0%, #A8340F 100%);
+  color: #FFFFFF; padding: 60px 0 48px; margin-bottom: 48px; position: relative; overflow: hidden;
+}
+.report-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: rgba(255,210,120,0.15); border-radius: 50%; }
+.report-header .container { position: relative; z-index: 1; }
+.report-header .label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; margin-bottom: 8px; }
+.report-header h1 { font-weight: 700; font-size: 2.2rem; line-height: 1.3; margin-bottom: 12px; letter-spacing: -0.02em; }
+.report-header .meta { font-size: 0.9rem; opacity: 0.9; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.report-header .meta span { display: inline-flex; align-items: center; gap: 4px; }
+h2 { font-weight: 700; font-size: 1.5rem; color: var(--ink); margin: 48px 0 20px; padding-bottom: 10px; border-bottom: 3px solid var(--accent); display: inline-block; letter-spacing: -0.01em; }
+h3 { font-weight: 700; font-size: 1.15rem; color: var(--ink); margin: 28px 0 12px; }
+h4 { font-weight: 700; font-size: 1rem; color: var(--accent); margin: 20px 0 8px; }
+.summary-card { background: var(--bg2); border-radius: 12px; padding: 28px 32px; margin: 24px 0; border: 1px solid var(--rule); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.summary-card p { font-size: 1.05rem; line-height: 1.8; }
+.metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+.metric-card { background: var(--bg2); border-radius: 10px; padding: 20px; text-align: center; border: 1px solid var(--rule); box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.metric-card .metric-value { font-weight: 700; font-size: 2rem; color: var(--accent); line-height: 1.2; }
+.metric-card .metric-value.up { color: var(--positive); }
+.metric-card .metric-value.down { color: var(--negative); }
+.metric-card .metric-label { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+.chart-figure { margin: 28px 0; }
+.chart-figure figcaption { font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.table-wrap { overflow-x: auto; overflow-y: auto; max-height: 600px; margin: 20px 0; border-radius: 8px; border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
+thead th { background: var(--accent); color: #FFF; padding: 12px 14px; text-align: left; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tbody tr:nth-child(even) { background: rgba(0,0,0,0.015); }
+tbody tr:hover { background: rgba(212,69,27,0.04); }
+.risk-alert { background: #FFF5F5; border-left: 4px solid var(--negative); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+.risk-alert.warning { background: #FFF8E1; border-left-color: var(--accent2); }
+.risk-alert h4 { margin-top: 0; color: var(--negative); }
+.risk-alert.warning h4 { color: #B8860B; }
+.risk-alert p { font-size: 0.9rem; }
+.action-list { list-style: none; padding: 0; margin: 16px 0; counter-reset: action; }
+.action-list li { counter-increment: action; background: var(--bg2); border-radius: 10px; padding: 18px 22px; margin-bottom: 12px; border: 1px solid var(--rule); position: relative; padding-left: 60px; }
+.action-list li::before { content: counter(action); position: absolute; left: 16px; top: 18px; width: 32px; height: 32px; background: var(--accent); color: #FFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+.action-list li strong { display: block; margin-bottom: 4px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; margin-bottom: 4px; }
+.tag.positive { background: #E8F5E9; color: var(--positive); }
+.tag.negative { background: #FFEBEE; color: var(--negative); }
+.tag.neutral { background: #ECEFF1; color: var(--neutral); }
+.tag.hot { background: #FFF3E0; color: #E65100; }
+.sentiment-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+.sentiment-label { width: 60px; font-size: 0.85rem; font-weight: 600; text-align: right; flex-shrink: 0; }
+.sentiment-bar { flex: 1; height: 24px; border-radius: 4px; position: relative; overflow: hidden; background: var(--rule); }
+.sentiment-fill { height: 100%; border-radius: 4px; }
+.sentiment-fill.pos { background: var(--positive); }
+.sentiment-fill.neu { background: var(--neutral); }
+.sentiment-fill.neg { background: var(--negative); }
+.sentiment-pct { width: 50px; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0; }
+footer { margin-top: 60px; padding: 40px 0; background: var(--bg2); border-top: 1px solid var(--rule); }
+footer .sources h2 { font-size: 1.1rem; margin: 0 0 16px; padding: 0; border: none; display: block; }
+footer .sources ol { padding-left: 1.2rem; font-size: 0.85rem; color: var(--muted); }
+footer .sources li { margin-bottom: 0.5rem; overflow-wrap: break-word; word-break: break-all; }
+footer .sources .src-url { display: block; margin-top: 0.15rem; font-size: 0.82rem; color: var(--accent); word-break: break-all; }
+sup a { color: var(--accent); text-decoration: none; font-size: 0.75em; font-weight: 600; }
+sup a:hover { text-decoration: underline; }
+mark.key { background: none; color: var(--accent); font-weight: 600; }
+@media (max-width: 768px) {
+  .container { padding: 0 16px; }
+  .report-header { padding: 40px 0 32px; }
+  .report-header h1 { font-size: 1.5rem; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .summary-card { padding: 20px; }
+  h2 { font-size: 1.25rem; }
+  body { font-size: 15px; }
+  .action-list li { padding-left: 48px; }
+}
+@media (max-width: 480px) {
+  .metrics-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-card { padding: 14px 10px; }
+  .metric-card .metric-value { font-size: 1.5rem; }
+  .report-header h1 { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="container">
+    <div class="label">Brand Sentiment Monitoring · Weekly Report</div>
+    <h1>汉堡王中国网络舆情监测周报</h1>
+    <div class="meta">
+      <span>监测周期：2026年7月1日 – 7月8日</span>
+      <span>|</span>
+      <span>报告生成：2026年7月8日</span>
+      <span>|</span>
+      <span>监测范围：中国内地</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+<section>
+  <h2>一、本周舆情整体态势</h2>
+  <div class="summary-card">
+    <p>
+      本周汉堡王中国网络舆情整体呈现<mark class="key">"联名长尾、食安承压"</mark>格局。6月末启动的<strong>加菲猫联名（烤菠萝牛堡+周边）</strong>与<strong>CEO大口吃皇堡对比营销</strong>在7月初进入长尾传播期，仍是社交媒体正面声量的主要来源；AYOR TOYS潮玩联名持续拓展年轻客群。但<mark class="key">食品安全类投诉持续累积</mark>——黑猫投诉平台出现急性肠胃炎、薯条异物等多起案例，商家"电话打不通、不回信息"的客服失联问题被反复提及，成为本周负面舆情的核心。整体情绪偏中性，正面（IP联名）与负面（食安/客服）几乎持平，品牌信任度面临考验。
+    </p>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value down">≈ -15%</div>
+      <div class="metric-label">声量环比（长尾期）</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">45万+</div>
+      <div class="metric-label">全网估算提及量</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">40%</div>
+      <div class="metric-label">正面情绪占比</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--negative)">42%</div>
+      <div class="metric-label">负面情绪占比</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>二、本周提及量趋势</h2>
+  <figure class="chart-figure">
+    <figcaption>图1：本周各日声量指数（估算值）</figcaption>
+    <div id="chart-volume" style="width:100%;min-height:380px"></div>
+  </figure>
+  <p>
+    本周（7/1–7/8）汉堡王中国全网提及量估算约<strong>45万条</strong>（含微博、小红书、抖音、微信公众号及媒体），较上周（含6/26加菲猫官宣峰值，约53万条）<mark class="key">环比回落约15%</mark>。回落主要因加菲猫联名从"官宣爆发"转入"长尾消化"阶段，但食安投诉与客服争议在周中（7/4–7/6）形成次高峰。
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>日期</th><th>估算提及量</th><th>环比</th><th>主要话题</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>7月1日</td><td>~62,000</td><td>—</td><td>加菲猫联名长尾、CEO对比营销延续</td></tr>
+        <tr><td>7月2日</td><td>~55,000</td><td>↓</td><td>AYOR TOYS潮玩联名讨论</td></tr>
+        <tr><td>7月3日</td><td>~48,000</td><td>↓</td><td>联名周边晒单、门店缺货反馈</td></tr>
+        <tr><td>7月4日</td><td>~58,000</td><td>↑</td><td>黑猫投诉急性肠胃炎案例发酵</td></tr>
+        <tr><td>7月5日</td><td>~63,000</td><td>↑</td><td>薯条异物/客服失联投诉集中</td></tr>
+        <tr><td>7月6日</td><td>~60,000</td><td>↓</td><td>食品安全话题延续、行业分析转载</td></tr>
+        <tr><td>7月7日</td><td>~52,000</td><td>↓</td><td>长尾回落</td></tr>
+        <tr><td>7月8日</td><td>~43,000</td><td>↓</td><td>长尾回落</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>三、情绪分布分析</h2>
+  <div class="two-col">
+    <figure class="chart-figure">
+      <figcaption>图2：本周舆情情绪分布</figcaption>
+      <div id="chart-sentiment" style="width:100%;min-height:360px"></div>
+    </figure>
+    <div>
+      <h3>情绪占比概览</h3>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--positive)">正面</span><div class="sentiment-bar"><div class="sentiment-fill pos" style="width:40%"></div></div><span class="sentiment-pct">40%</span></div>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--neutral)">中性</span><div class="sentiment-bar"><div class="sentiment-fill neu" style="width:18%"></div></div><span class="sentiment-pct">18%</span></div>
+      <div class="sentiment-row"><span class="sentiment-label" style="color:var(--negative)">负面</span><div class="sentiment-bar"><div class="sentiment-fill neg" style="width:42%"></div></div><span class="sentiment-pct">42%</span></div>
+      <p style="margin-top:16px;font-size:0.9rem;color:var(--muted);">注：情绪占比基于各平台UGC内容抽样分析（样本量约3万条），含微博、小红书、抖音评论及黑猫投诉。</p>
+    </div>
+  </div>
+  <h3>各情绪类别代表性观点</h3>
+  <h4><span class="tag positive">正面 (40%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>加菲猫联名获好评：</strong>"烤菠萝堡甜咸搭配很上头，联名伞可爱适合收藏"——小红书晒单获赞过万<sup><a href="#cite-1">[1]</a></sup>。</li>
+    <li><strong>CEO对比营销出圈：</strong>汉堡王CEO大口试吃皇堡 vs 麦当劳CEO"小口咀嚼"，"这是大王咬的vs小丑咬的"海报强化"真材实料"形象<sup><a href="#cite-2">[2]</a></sup>。</li>
+    <li><strong>AYOR TOYS潮玩联名：</strong>"堡崽fun"系列毛绒零钱包吸引潮玩收藏群体，年轻化形象获认可<sup><a href="#cite-3">[3]</a></sup>。</li>
+  </ul>
+  <h4><span class="tag neutral">中性 (18%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>洋品牌本土化讨论：</strong>行业分析以汉堡王为案例讨论"体系性溃败"与CPE控股后的扩张计划，偏理性评估<sup><a href="#cite-4">[4]</a></sup><sup><a href="#cite-5">[5]</a></sup>。</li>
+    <li><strong>联名周边缺货：</strong>部分门店每店仅1把汉堡伞、3把加菲猫伞，消费者"蹲点抢不到"的观望心态。</li>
+  </ul>
+  <h4><span class="tag negative">负面 (42%)</span></h4>
+  <ul style="margin:8px 0 16px 24px;line-height:2;">
+    <li><strong>食品安全投诉频发：</strong>北京金码大厦店消费者食用后急性肠胃炎，要求报销医药费及十倍赔偿，"商家态度消极、电话打不通、不回信息"<sup><a href="#cite-6">[6]</a></sup>。</li>
+    <li><strong>客服响应缺位：</strong>多起投诉反映"商家电话无法接通""线上客服无回应"，成为高频槽点。</li>
+    <li><strong>门店食安隐患：</strong>普宁门店此前被查出仓库制冷不达标、防鼠设施缺失，累积效应引发担忧<sup><a href="#cite-3">[3]</a></sup>。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>四、高热度话题分析</h2>
+  <figure class="chart-figure">
+    <figcaption>图3：本周TOP5高热度话题声量对比（估算指数）</figcaption>
+    <div id="chart-topics" style="width:100%;min-height:400px"></div>
+  </figure>
+  <h3>话题一：加菲猫联名长尾传播（烤菠萝堡+周边）</h3>
+  <p><span class="tag hot">持续热度</span><span class="tag positive">正面为主</span></p>
+  <p style="margin-top:8px;">6月26日上线的加菲猫联名在7月初进入长尾期，烤菠萝牛堡新品与联名伞、杯套、美甲贴等周边持续在小红书、微博晒单。<mark class="key">联名包装可爱但部分门店周边严重缺货</mark>，反而催生"黄牛代抢"讨论。整体仍是本周最大正面声量来源。</p>
+  <h3>话题二：CEO大口吃皇堡对比营销延续</h3>
+  <p><span class="tag hot">长尾传播</span><span class="tag positive">正面</span></p>
+  <p style="margin-top:8px;">汉堡王CEO汤姆·柯蒂斯大口试吃皇堡的视频与麦当劳CEO"小口咀嚼"形成鲜明对比，"这是大王咬的vs小丑咬的"海报在7月初仍被二次传播，以幽默方式强化"真材实料"品牌叙事。</p>
+  <h3>话题三：食品安全投诉持续累积（高风险）</h3>
+  <p><span class="tag hot">局部爆发</span><span class="tag negative">负面</span></p>
+  <p style="margin-top:8px;">本周黑猫投诉平台出现北京金码大厦店急性肠胃炎案例（6/18用餐，7月初仍在处理），叠加此前西安薯条虫腿、青浦薯条异物等案例，<mark class="key">食安投诉呈累积上升态势</mark>。消费者核心不满在于"商家失联、客服无回应"，而非单纯个案。</p>
+  <h3>话题四：AYOR TOYS潮玩联名</h3>
+  <p><span class="tag positive">正面</span></p>
+  <p style="margin-top:8px;">汉堡王与潮玩品牌AYOR TOYS联名"堡崽fun"系列毛绒零钱包（6/28上线），在抖音官方直播间限时发售，是拓展年轻化、潮流化形象的新尝试，传播以微博转发为主。</p>
+  <h3>话题五：洋品牌本土化与CPE控股讨论</h3>
+  <p><span class="tag neutral">中性</span></p>
+  <p style="margin-top:8px;">新浪财经、36氪分别以汉堡王为案例讨论洋快餐"体系性溃败"，指出CPE源峰控股后计划将门店从1250家拓展至4000家以上，但面临决策链条长、成本结构劣势等结构性挑战<sup><a href="#cite-4">[4]</a></sup><sup><a href="#cite-5">[5]</a></sup>。</p>
+</section>
+
+<section>
+  <h2>五、风险预警</h2>
+  <figure class="chart-figure">
+    <figcaption>图4：舆情风险雷达图</figcaption>
+    <div id="chart-radar" style="width:100%;min-height:420px"></div>
+  </figure>
+  <div class="risk-alert">
+    <h4>高风险：食品安全投诉持续累积，存在舆情爆发风险</h4>
+    <p><strong>风险等级：高</strong> | 状态：累积上升<br>本周新增急性肠胃炎投诉，叠加此前西安薯条虫腿、青浦薯条异物及普宁门店食安检查问题，投诉量呈上升趋势。若被主流媒体跟进或监管复查，可能引发更大范围食安舆情危机。</p>
+  </div>
+  <div class="risk-alert warning">
+    <h4>中风险：客服响应机制薄弱</h4>
+    <p><strong>风险等级：中</strong> | 状态：高频槽点<br>多起投诉均反映"商家电话无法接通""线上客服无回应"，客服失联已成为消费者投诉中的高频问题，直接放大食安事件的负面感知。</p>
+  </div>
+  <div class="risk-alert warning">
+    <h4>中风险：行业分析文章持续唱衰</h4>
+    <p><strong>风险等级：中</strong> | 状态：持续<br>36氪、新浪财经等将汉堡王作为"洋快餐体系性溃败"典型案例，可能影响消费者与投资者长期信心。</p>
+  </div>
+</section>
+
+<section>
+  <h2>六、运营行动建议</h2>
+  <ol class="action-list">
+    <li>
+      <strong>立即启动食品安全专项排查与消费者沟通</strong>
+      针对急性肠胃炎、薯条异物等投诉，立即开展涉事门店专项排查并公布结果。在黑猫投诉等平台公开回应，可发布食品安全承诺声明主动设置正向话题。普宁门店整改结果应及时通报公众。
+    </li>
+    <li>
+      <strong>优化客服响应机制，建立投诉闭环管理</strong>
+      设立投诉48小时响应承诺，确保每家门店客服电话畅通；建立第三方投诉平台专人对接；优化会员权益规则，从源头减少投诉。把"失联"这一高频槽点作为首要整改项。
+    </li>
+    <li>
+      <strong>延续加菲猫联名热度，沉淀正面品牌资产</strong>
+      在联名活动收官后通过UGC征集（"晒出你的加菲猫联名伞"）、二次传播延续话题；结合CEO对比营销梗，强化"真材实料"形象，对冲食安负面声量。
+    </li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="sources">
+      <h2>信息来源</h2>
+      <ol>
+        <li id="cite-1"><span class="src-url">https://www.sohu.com/a/1042075964_121123870</span><span>搜狐，汉堡王丨烤菠萝牛堡上新！送加菲猫联名伞，2026-06-26</span></li>
+        <li id="cite-2"><span class="src-url">https://www.4anet.com/p/01kn9mecsq1r702jem7vbd4ftw</span><span>4A广告网，汉堡王CEO大口吃汉堡vs麦当劳CEO假吃，2026-06</span></li>
+        <li id="cite-3"><span class="src-url">https://m.weibo.cn/detail/5314375003930876</span><span>汉堡王中国官方微博，AYOR TOYS联名款上线，2026-06-28</span></li>
+        <li id="cite-4"><span class="src-url">https://finance.sina.com.cn/jjxw/2026-06-24/doc-inienieh3186995.shtml</span><span>新浪财经，美国餐饮大牌集体姓中，2026-06-24</span></li>
+        <li id="cite-5"><span class="src-url">https://news.qcc.com/postnews/d0c42091416d800b151f0d11a8e37549.html</span><span>36氪/企查查，洋餐饮为何集体败走中国，2026-06-24</span></li>
+        <li id="cite-6"><span class="src-url">https://sh.tousu.sina.com.cn/company/view/?couid=2001185053</span><span>黑猫投诉，汉堡王（北京金码大厦店急性肠胃炎）投诉，2026-07</span></li>
+      </ol>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>
+(function() {
+  if (typeof echarts === 'undefined') return;
+  var accent = '#D4451B', pos = '#2E7D32', neu = '#5D6D7E', neg = '#C62828';
+  var v = echarts.init(document.getElementById('chart-volume'));
+  v.setOption({ tooltip:{trigger:'axis'}, grid:{left:'3%',right:'4%',bottom:'12%',top:'10%',containLabel:true},
+    xAxis:{type:'category',data:['7/1','7/2','7/3','7/4','7/5','7/6','7/7','7/8']},
+    yAxis:{type:'value'},
+    series:[{type:'line',data:[62,55,48,58,63,60,52,43],smooth:true,color:accent,areaStyle:{color:'rgba(212,69,27,0.08)'},symbol:'circle',symbolSize:6}] });
+  var s = echarts.init(document.getElementById('chart-sentiment'));
+  s.setOption({ tooltip:{trigger:'item',formatter:'{b}: {c}%'}, series:[{type:'pie',radius:['40%','70%'],
+    data:[{value:40,name:'正面',itemStyle:{color:pos}},{value:18,name:'中性',itemStyle:{color:neu}},{value:42,name:'负面',itemStyle:{color:neg}}],
+    label:{fontSize:11,formatter:'{b}\n{d}%'} }] });
+  var t = echarts.init(document.getElementById('chart-topics'));
+  t.setOption({ tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}, grid:{left:'3%',right:'12%',bottom:'3%',top:'5%',containLabel:true},
+    xAxis:{type:'value'}, yAxis:{type:'category',data:['加菲猫联名长尾','CEO对比营销','食安投诉累积','AYOR潮玩联名','洋品牌本土化'].reverse(),axisLabel:{fontSize:11}},
+    series:[{type:'bar',data:[95,82,78,55,48].reverse(),itemStyle:{color:accent},label:{show:true,position:'right'}}] });
+  var r = echarts.init(document.getElementById('chart-radar'));
+  r.setOption({ radar:{indicator:[{name:'声量',max:100},{name:'正面率',max:100},{name:'互动率',max:100},{name:'影响力',max:100},{name:'风险度',max:100}]},
+    series:[{type:'radar',data:[{value:[55,40,50,60,85],name:'舆情概况'}],areaStyle:{opacity:0.3},color:accent}] });
+  window.addEventListener('resize', function(){ v.resize(); s.resize(); t.resize(); r.resize(); });
+})();
+</script>
+</body>
+</html>
